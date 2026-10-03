@@ -1,0 +1,363 @@
+/* ==========================================================================
+   RPC Explorer — jetons de design (« instrument de laboratoire »)
+   Thème sombre par défaut ; thème clair sous [data-theme="light"].
+   Toute couleur, tout rayon, toute durée de l'interface vient d'ici.
+   ========================================================================== */
+
+/* --- Polices embarquées (variables, woff2) ------------------------------- */
+
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../fonts/inter-latin-ext-opsz-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('../fonts/inter-latin-opsz-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../fonts/jetbrains-mono-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* --- Jetons indépendants du thème ---------------------------------------- */
+
+:root {
+  /* Typographie */
+  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-20: 20px;
+  --fs-28: 28px;
+  --fs-40: 40px;
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.65;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 680;
+
+  --tracking-tight: -0.02em;
+  --tracking-snug: -0.011em;
+  --tracking-caps: 0.06em;
+
+  /* Espacement — échelle de 4 px */
+  --sp-0: 0px;
+  --sp-px: 1px;
+  --sp-0h: 2px;
+  --sp-1: 4px;
+  --sp-1h: 6px;
+  --sp-2: 8px;
+  --sp-2h: 10px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* Rayons */
+  --r-xs: 4px;
+  --r-chip: 6px;
+  --r-sm: 8px;
+  --r-control: 10px;
+  --r-card: 14px;
+  --r-pop: 12px;
+  --r-full: 999px;
+
+  /* Dimensions de la coquille et des contrôles */
+  --sidebar-w: 248px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 56px;
+  --content-max: 1480px;
+  --content-pad: 28px;
+  --drawer-w: 440px;
+  --grid-gap: 16px;
+
+  --control-h-sm: 28px;
+  --control-h: 32px;
+  --control-h-lg: 40px;
+
+  /* Mouvement */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.25, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.9, 0.3);
+  --dur-1: 120ms;
+  --dur-2: 160ms;
+  --dur-3: 200ms;
+  --dur-4: 320ms;
+  --dur-5: 520ms;
+  --stagger: 36ms;
+
+  /* Plans */
+  --z-base: 0;
+  --z-raised: 2;
+  --z-sticky: 10;
+  --z-sidebar: 30;
+  --z-topbar: 40;
+  --z-drawer: 60;
+  --z-modal: 70;
+  --z-palette: 80;
+  --z-popover: 90;
+  --z-toast: 100;
+  --z-tooltip: 110;
+
+  /* Couleurs de protocole — identiques partout (graphiques, puces, pipelines) */
+  --proto-local: #8A94A6;
+  --proto-custom: #5AA2FF;
+  --proto-grpc: #2FD9C4;
+  --proto-rest: #F2789F;
+
+  /* Dégradé de marque — réservé au logo et à de rares moments forts */
+  --brand-from: #8B7CFF;
+  --brand-to: #5CE1E6;
+  --gradient-brand: linear-gradient(135deg, var(--brand-from) 0%, var(--brand-to) 100%);
+}
+
+/* --- Thème sombre (défaut) ------------------------------------------------ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg-0: #07090D;
+  --bg-1: #0C0F15;
+  --bg-2: #11151D;
+  --bg-3: #171C26;
+  --bg-4: #1E2431;
+  --bg-inset: #0A0D12;
+  --bg-control: #171C26;
+  --bg-control-hover: #1E2431;
+  --bg-glass: rgba(12, 15, 21, 0.72);
+  --bg-pop: rgba(19, 23, 32, 0.92);
+  --bg-overlay: rgba(3, 5, 8, 0.62);
+  --bg-hover: rgba(255, 255, 255, 0.045);
+  --bg-active: rgba(255, 255, 255, 0.075);
+
+  /* Bordures */
+  --border-1: rgba(255, 255, 255, 0.07);
+  --border-2: rgba(255, 255, 255, 0.12);
+  --border-3: rgba(255, 255, 255, 0.2);
+
+  /* Graisse de la police à chasse fixe : allégée sur fond sombre, où le texte clair « bave » */
+  --fw-mono: 300;
+  --fw-mono-strong: 440;
+
+  /* Texte */
+  --fg-0: #EDEFF3;
+  --fg-1: #A9B1BF;
+  --fg-2: #6B7485;
+  --fg-3: #4A5262;
+
+  /* Accent de marque — iris */
+  --accent: #8B7CFF;
+  --accent-fg: #A69BFF;
+  --accent-solid: #6E5FE8;
+  --accent-solid-hover: #7B6CF1;
+  --accent-solid-active: #6152D9;
+  --on-accent: #FFFFFF;
+  --accent-soft: rgba(139, 124, 255, 0.14);
+  --accent-softer: rgba(139, 124, 255, 0.08);
+  --accent-line: rgba(139, 124, 255, 0.38);
+  --focus-ring: rgba(139, 124, 255, 0.55);
+
+  /* Protocoles — variantes de texte, de fond et de liseré */
+  --proto-local-fg: #A1AABA;
+  --proto-local-soft: rgba(138, 148, 166, 0.14);
+  --proto-local-line: rgba(138, 148, 166, 0.34);
+  --proto-custom-fg: #74B1FF;
+  --proto-custom-soft: rgba(90, 162, 255, 0.14);
+  --proto-custom-line: rgba(90, 162, 255, 0.36);
+  --proto-grpc-fg: #3FE0CC;
+  --proto-grpc-soft: rgba(47, 217, 196, 0.13);
+  --proto-grpc-line: rgba(47, 217, 196, 0.34);
+  --proto-rest-fg: #F58DAE;
+  --proto-rest-soft: rgba(242, 120, 159, 0.14);
+  --proto-rest-line: rgba(242, 120, 159, 0.36);
+
+  /* États */
+  --success: #4ADE80;
+  --success-fg: #5BE38C;
+  --success-soft: rgba(74, 222, 128, 0.12);
+  --success-line: rgba(74, 222, 128, 0.32);
+  --warning: #FBBF24;
+  --warning-fg: #FCC63C;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --warning-line: rgba(251, 191, 36, 0.32);
+  --danger: #F87171;
+  --danger-fg: #FA8585;
+  --danger-soft: rgba(248, 113, 113, 0.13);
+  --danger-line: rgba(248, 113, 113, 0.36);
+  --danger-solid: #CF3D3D;
+  --danger-solid-hover: #DB4B4B;
+  --info: #60A5FA;
+  --info-fg: #78B3FB;
+  --info-soft: rgba(96, 165, 250, 0.13);
+  --info-line: rgba(96, 165, 250, 0.34);
+  --neutral: #8A94A6;
+  --neutral-soft: rgba(255, 255, 255, 0.06);
+  --neutral-line: rgba(255, 255, 255, 0.12);
+
+  --on-tone: #0B0D12;
+  --tooltip-bg: #262D3B;
+  --tooltip-fg: #EDEFF3;
+
+  /* Reliefs */
+  --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.28), 0 12px 32px -20px rgba(0, 0, 0, 0.55);
+  --shadow-pop: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 16px -4px rgba(0, 0, 0, 0.45), 0 24px 56px -12px rgba(0, 0, 0, 0.65);
+  --shadow-modal: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 32px 80px -16px rgba(0, 0, 0, 0.75);
+  --shadow-drawer: -24px 0 64px -24px rgba(0, 0, 0, 0.6);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.2);
+
+  /* Ambiance */
+  --glow-1: rgba(139, 124, 255, 0.085);
+  --glow-2: rgba(92, 225, 230, 0.04);
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --selection: rgba(139, 124, 255, 0.34);
+  --scrollbar: rgba(255, 255, 255, 0.13);
+  --scrollbar-hover: rgba(255, 255, 255, 0.24);
+  --skeleton-a: rgba(255, 255, 255, 0.045);
+  --skeleton-b: rgba(255, 255, 255, 0.095);
+  --blur: 16px;
+}
+
+/* --- Thème clair — blancs chauds, vrai contraste ------------------------- */
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-0: #F4F3EF;
+  --bg-1: #FAF9F6;
+  --bg-2: #FFFFFF;
+  --bg-3: #F3F1EC;
+  --bg-4: #E9E6DF;
+  --bg-inset: #F8F7F3;
+  --bg-control: #FFFFFF;
+  --bg-control-hover: #F8F7F3;
+  --bg-glass: rgba(250, 249, 246, 0.78);
+  --bg-pop: rgba(255, 255, 255, 0.94);
+  --bg-overlay: rgba(30, 27, 20, 0.34);
+  --bg-hover: rgba(40, 32, 16, 0.045);
+  --bg-active: rgba(40, 32, 16, 0.08);
+
+  --border-1: rgba(38, 30, 14, 0.1);
+  --border-2: rgba(38, 30, 14, 0.16);
+  --border-3: rgba(38, 30, 14, 0.28);
+
+  --fw-mono: 400;
+  --fw-mono-strong: 520;
+
+  --fg-0: #17181C;
+  --fg-1: #474B55;
+  --fg-2: #6C707A;
+  --fg-3: #A1A4AB;
+
+  --accent: #7566F0;
+  --accent-fg: #5646CF;
+  --accent-solid: #6958E6;
+  --accent-solid-hover: #5C4BD9;
+  --accent-solid-active: #5141C8;
+  --on-accent: #FFFFFF;
+  --accent-soft: rgba(117, 102, 240, 0.12);
+  --accent-softer: rgba(117, 102, 240, 0.065);
+  --accent-line: rgba(117, 102, 240, 0.4);
+  --focus-ring: rgba(117, 102, 240, 0.5);
+
+  --proto-local-fg: #566072;
+  --proto-local-soft: rgba(138, 148, 166, 0.16);
+  --proto-local-line: rgba(100, 111, 130, 0.36);
+  --proto-custom-fg: #1F68CC;
+  --proto-custom-soft: rgba(90, 162, 255, 0.15);
+  --proto-custom-line: rgba(52, 128, 228, 0.42);
+  --proto-grpc-fg: #0B7F72;
+  --proto-grpc-soft: rgba(47, 217, 196, 0.17);
+  --proto-grpc-line: rgba(18, 160, 144, 0.46);
+  --proto-rest-fg: #C2386A;
+  --proto-rest-soft: rgba(242, 120, 159, 0.15);
+  --proto-rest-line: rgba(220, 84, 130, 0.42);
+
+  --success: #22B35E;
+  --success-fg: #167A3E;
+  --success-soft: rgba(34, 179, 94, 0.12);
+  --success-line: rgba(34, 160, 84, 0.4);
+  --warning: #E0A008;
+  --warning-fg: #94610A;
+  --warning-soft: rgba(240, 176, 20, 0.16);
+  --warning-line: rgba(200, 140, 10, 0.44);
+  --danger: #E5484D;
+  --danger-fg: #C02A30;
+  --danger-soft: rgba(229, 72, 77, 0.1);
+  --danger-line: rgba(220, 60, 66, 0.4);
+  --danger-solid: #CF3338;
+  --danger-solid-hover: #BD2A2F;
+  --info: #3B8AF0;
+  --info-fg: #1C63C4;
+  --info-soft: rgba(59, 138, 240, 0.11);
+  --info-line: rgba(50, 124, 224, 0.4);
+  --neutral: #7A8291;
+  --neutral-soft: rgba(40, 32, 16, 0.055);
+  --neutral-line: rgba(38, 30, 14, 0.16);
+
+  --on-tone: #FFFFFF;
+  --tooltip-bg: #1E1F25;
+  --tooltip-fg: #F4F3EF;
+
+  --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-xs: 0 1px 2px rgba(38, 30, 14, 0.07);
+  --shadow-card: 0 1px 2px rgba(38, 30, 14, 0.05), 0 10px 28px -18px rgba(38, 30, 14, 0.2);
+  --shadow-pop: 0 0 0 1px rgba(38, 30, 14, 0.06), 0 8px 16px -6px rgba(38, 30, 14, 0.12), 0 24px 56px -16px rgba(38, 30, 14, 0.24);
+  --shadow-modal: 0 0 0 1px rgba(38, 30, 14, 0.06), 0 32px 80px -20px rgba(38, 30, 14, 0.36);
+  --shadow-drawer: -24px 0 64px -28px rgba(38, 30, 14, 0.26);
+  --shadow-thumb: 0 1px 3px rgba(38, 30, 14, 0.28), 0 0 0 1px rgba(38, 30, 14, 0.14);
+
+  --glow-1: transparent;
+  --glow-2: transparent;
+  --grid-line: rgba(38, 30, 14, 0.05);
+  --selection: rgba(117, 102, 240, 0.24);
+  --scrollbar: rgba(38, 30, 14, 0.18);
+  --scrollbar-hover: rgba(38, 30, 14, 0.32);
+  --skeleton-a: rgba(38, 30, 14, 0.055);
+  --skeleton-b: rgba(38, 30, 14, 0.11);
+}

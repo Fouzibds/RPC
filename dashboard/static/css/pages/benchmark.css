@@ -1,0 +1,989 @@
+/* Page « Benchmark » (#/benchmark) — mise en page et visuels propres à la page.
+   Toutes les couleurs viennent des jetons : les deux thèmes sont couverts sans règle dédiée. */
+
+/* --- En-tête : rapport affiché et sommaire -------------------------------------------- */
+
+.bench-meta {
+  display: contents;
+}
+
+.bench-toc {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: var(--sp-1);
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--border-1);
+}
+
+.bench-toc__link {
+  height: 22px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-chip);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--fg-2);
+  transition: color var(--dur-1) var(--ease-out), background-color var(--dur-1) var(--ease-out);
+}
+
+.bench-toc__link:hover {
+  background: var(--bg-hover);
+  color: var(--fg-0);
+}
+
+/* --- Carte de configuration --------------------------------------------------------- */
+
+.bench-config {
+  scroll-margin-top: calc(var(--topbar-h) + var(--sp-4));
+}
+
+.bench-config .card__actions {
+  gap: var(--sp-2h);
+  margin: -2px 0;
+}
+
+.bench-config__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+
+.bench-config__fields:disabled {
+  opacity: 0.55;
+}
+
+.bench-config__suites {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--sp-2h);
+}
+
+.bench-config__suite {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2h);
+  min-width: 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-control);
+  background: var(--bg-inset);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+  transition: box-shadow var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+
+.bench-config__suite:hover {
+  box-shadow: inset 0 0 0 1px var(--border-2);
+}
+
+.bench-config__suite:has([aria-checked='true']) {
+  background: var(--accent-softer);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+.bench-config__suite-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: var(--bg-3);
+  color: var(--fg-2);
+  transition: color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+
+.bench-config__suite:has([aria-checked='true']) .bench-config__suite-icon {
+  background: var(--accent-soft);
+  color: var(--accent-fg);
+}
+
+.bench-config__suite .toggle {
+  flex: 1;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.bench-config__suite .toggle__text {
+  flex: 1;
+}
+
+.bench-config__suite .toggle--sm .toggle__label {
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--fg-0);
+}
+
+.bench-config__row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(280px, auto) repeat(3, minmax(116px, 0.62fr));
+  gap: var(--sp-4) var(--sp-5);
+  align-items: start;
+}
+
+.bench-config__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1h);
+  min-height: var(--control-h);
+}
+
+.bench-config__chips > * {
+  flex: none;
+}
+
+.bench-config__notice:not(:empty) {
+  margin-top: var(--sp-4);
+}
+
+.bench-config__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  margin: var(--sp-5) calc(-1 * var(--card-pad)) calc(-1 * var(--card-pad));
+  padding: var(--sp-3) var(--card-pad);
+  border-top: 1px solid var(--border-1);
+  border-radius: 0 0 var(--r-card) var(--r-card);
+  background: color-mix(in srgb, var(--bg-1) 55%, transparent);
+  min-height: 64px;
+}
+
+.bench-config__foot > .btn {
+  flex: none;
+}
+
+.bench-config__estimate {
+  min-width: 0;
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  color: var(--fg-2);
+}
+
+.bench-config__estimate-label {
+  color: var(--fg-1);
+  font-weight: var(--fw-medium);
+}
+
+/* Pendant la mesure, le bouton ne garde que son indicateur d'activité. */
+.bench-config[data-running='true'] #bench-run .btn__icon,
+.bench-config[data-running='true'] #bench-run .kbd-group {
+  display: none;
+}
+
+/* Progression d'une mesure */
+
+.bench-run {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1h);
+  min-width: 0;
+}
+
+.bench-run__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.bench-run__steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bench-run__step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1h);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--fg-3);
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+.bench-run__marker {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--border-3);
+  color: var(--on-accent);
+}
+
+.bench-run__step[data-state='done'] {
+  color: var(--fg-1);
+}
+
+.bench-run__step[data-state='done'] .bench-run__marker {
+  background: var(--accent-solid);
+  box-shadow: none;
+}
+
+.bench-run__step[data-state='active'] {
+  color: var(--fg-0);
+}
+
+.bench-run__step[data-state='active'] .bench-run__marker {
+  box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 3px var(--accent-soft);
+  animation: bench-pulse 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes bench-pulse {
+  50% { box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 5px var(--accent-softer); }
+}
+
+.bench-run__elapsed {
+  flex: none;
+  font-size: var(--fs-11);
+  color: var(--fg-2);
+}
+
+.bench-run__message {
+  overflow: hidden;
+  font-size: var(--fs-11);
+  line-height: 1.4;
+  color: var(--fg-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- États de la page ------------------------------------------------------------------- */
+
+.bench-alerts,
+.bench-loading,
+.bench-results {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bench-loading {
+  gap: var(--grid-gap);
+}
+
+.bench-results {
+  gap: var(--sp-8);
+}
+
+.bench-alerts[hidden],
+.bench-loading[hidden],
+.bench-results[hidden] {
+  display: none;
+}
+
+/* Accueil : ce qui sera mesuré */
+
+.bench-intro .empty {
+  padding-top: var(--sp-10);
+  padding-bottom: var(--sp-8);
+}
+
+.bench-intro .empty__action {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.bench-intro__hint {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+}
+
+.bench-intro__suites {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, auto);
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-1);
+  list-style: none;
+}
+
+.bench-intro__suite {
+  position: relative;
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  gap: var(--sp-2);
+  align-content: start;
+  min-width: 0;
+  padding: var(--sp-5) var(--sp-5) var(--sp-6);
+}
+
+.bench-intro__suite + .bench-intro__suite {
+  border-left: 1px solid var(--border-1);
+}
+
+.bench-intro__step {
+  position: absolute;
+  top: var(--sp-5);
+  right: var(--sp-5);
+  font-size: var(--fs-11);
+  color: var(--fg-3);
+}
+
+.bench-intro__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: var(--sp-1);
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent-fg);
+}
+
+.bench-intro__title {
+  font-size: var(--fs-14);
+  line-height: 1.35;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.012em;
+}
+
+.bench-intro__text {
+  font-size: var(--fs-12);
+  line-height: 1.55;
+  color: var(--fg-1);
+}
+
+.bench-intro__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: var(--sp-1) 0 0;
+  padding: var(--sp-3) 0 0;
+  border-top: 1px dashed var(--border-2);
+  list-style: none;
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+}
+
+.bench-intro__list li {
+  position: relative;
+  padding-left: var(--sp-3);
+}
+
+.bench-intro__list li::before {
+  content: '';
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--fg-3);
+}
+
+/* --- Sections de résultats --------------------------------------------------------------- */
+
+.bench-suite,
+#bench-highlights,
+#bench-report {
+  scroll-margin-top: calc(var(--topbar-h) + var(--sp-4));
+}
+
+.bench-suite__status:empty {
+  display: none;
+}
+
+.bench-suite__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--grid-gap);
+  min-width: 0;
+}
+
+.bench-suite__content[hidden] {
+  display: none;
+}
+
+.bench-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) 0;
+  margin-top: calc(-1 * var(--sp-1));
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+}
+
+.bench-context[hidden] {
+  display: none;
+}
+
+.bench-context__item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bench-context__item .mono {
+  color: var(--fg-1);
+}
+
+.bench-context__item:not(:last-child)::after {
+  content: '';
+  width: 3px;
+  height: 3px;
+  margin: 0 var(--sp-2h);
+  border-radius: 50%;
+  background: var(--fg-3);
+}
+
+.bench-skipped {
+  border-style: dashed;
+}
+
+/* Les cartes d'une même rangée partagent leur hauteur ; le graphique occupe l'espace libre. */
+.bench-suite .col > .card {
+  height: 100%;
+}
+
+.bench-suite .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.bench-suite .card--pad-none .card__body {
+  gap: 0;
+}
+
+/* Ligne de lecture : la phrase calculée sous un graphique */
+
+.bench-insight {
+  display: flex;
+  gap: var(--sp-2h);
+  margin-top: auto;
+  padding: var(--sp-2h) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--bg-inset);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+}
+
+.bench-insight[hidden] {
+  display: none;
+}
+
+.bench-insight__icon {
+  flex: none;
+  display: flex;
+  margin-top: 2px;
+  color: var(--accent-fg);
+}
+
+.bench-insight__text {
+  min-width: 0;
+  font-size: var(--fs-12);
+  line-height: 1.6;
+  color: var(--fg-1);
+}
+
+.bench-num {
+  font-weight: var(--fw-mono-strong);
+  color: var(--fg-0);
+  white-space: nowrap;
+}
+
+.bench-delta {
+  color: var(--tone-fg);
+  white-space: nowrap;
+}
+
+.bench-delta[data-tone='neutral'] {
+  color: var(--fg-2);
+}
+
+/* --- Faits marquants --------------------------------------------------------------------- */
+
+.bench-facts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bench-fact {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-card);
+  background: var(--bg-2);
+  box-shadow: var(--highlight-top), var(--shadow-card);
+  text-align: left;
+  overflow: hidden;
+  transition: border-color var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+  animation: rise-in var(--dur-5) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+.bench-fact::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--tone);
+  opacity: 0.85;
+}
+
+button.bench-fact:hover {
+  border-color: var(--border-2);
+  background: var(--bg-3);
+}
+
+.bench-fact__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-height: 32px;
+}
+
+.bench-fact__tone {
+  flex: none;
+  display: flex;
+  margin-top: 1px;
+  color: var(--tone-fg);
+}
+
+.bench-fact__title {
+  min-width: 0;
+  font-size: var(--fs-12);
+  line-height: 1.35;
+  font-weight: var(--fw-medium);
+  color: var(--fg-1);
+}
+
+.bench-fact__value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--sp-2);
+  min-width: 0;
+}
+
+.bench-fact__number {
+  font-size: var(--fs-28);
+  line-height: 1.1;
+  font-weight: var(--fw-mono);
+  letter-spacing: -0.03em;
+  color: var(--fg-0);
+  white-space: nowrap;
+}
+
+.bench-fact__unit {
+  font-size: var(--fs-12);
+  line-height: 1.3;
+  color: var(--fg-1);
+}
+
+.bench-fact__tag {
+  flex-basis: 100%;
+  font-size: var(--fs-12);
+  line-height: 1.3;
+  font-weight: var(--fw-medium);
+  color: var(--tone-fg);
+}
+
+.bench-fact__unit--solo {
+  font-size: var(--fs-20);
+  line-height: 1.55;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-0);
+}
+
+.bench-fact__detail {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--fs-12);
+  line-height: 1.55;
+  color: var(--fg-2);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.bench-fact[aria-expanded='true'] .bench-fact__detail {
+  display: block;
+  color: var(--fg-1);
+}
+
+.bench-fact--loading {
+  gap: var(--sp-3);
+  animation: none;
+}
+
+.bench-fact--loading::before {
+  background: var(--border-2);
+}
+
+.bench-facts__note,
+.bench-facts__empty {
+  grid-column: 1 / -1;
+}
+
+.bench-facts__note {
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+}
+
+.bench-facts__empty {
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-card);
+}
+
+/* --- Tailles : octets réels sur le fil --------------------------------------------------- */
+
+.bench-wire {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--sp-6);
+  align-items: stretch;
+}
+
+.bench-wire__chart {
+  min-width: 0;
+}
+
+.bench-wire__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.bench-wire__detail .table-wrap {
+  border-radius: var(--r-control);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+}
+
+/* --- Latence : tuiles par protocole ------------------------------------------------------ */
+
+.bench-issues[hidden] {
+  display: none;
+}
+
+.bench-tile .card__body {
+  gap: var(--sp-3);
+}
+
+.bench-tile .stat[hidden],
+.bench-tile__spark[hidden],
+.bench-tile__caption[hidden],
+.bench-tile__loading[hidden] {
+  display: none;
+}
+
+.bench-tile__spark {
+  min-width: 0;
+  height: 40px;
+  overflow: hidden;
+}
+
+.bench-tile__caption {
+  font-size: var(--fs-11);
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+
+.bench-tile__errors {
+  color: var(--danger-fg);
+}
+
+.bench-tile__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* Tableau statistique : les en-têtes de colonnes sont les protocoles */
+
+.bench-stats .table__th .proto-chip {
+  height: auto;
+  letter-spacing: inherit;
+}
+
+.bench-stats .table__td:first-child {
+  color: var(--fg-1);
+}
+
+/* --- Sérialisation : tailles comparées ---------------------------------------------------- */
+
+.bench-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-12);
+}
+
+.bench-sizes[hidden] {
+  display: none;
+}
+
+.bench-size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1h);
+  height: 26px;
+  padding: 0 var(--sp-2h);
+  border-radius: var(--r-chip);
+  background: var(--bg-inset);
+  box-shadow: inset 0 0 0 1px var(--border-1);
+}
+
+.bench-size__key {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.bench-size__label {
+  color: var(--fg-2);
+}
+
+.bench-size__value {
+  color: var(--fg-0);
+}
+
+/* --- Local vs distant : projection ------------------------------------------------------- */
+
+.bench-projection__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-3) var(--sp-5);
+}
+
+.bench-projection__controls .field__control > * {
+  flex: none;
+}
+
+.bench-projection__points {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h);
+}
+
+.bench-projection__none {
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+}
+
+.bench-projection__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.bench-projection__rows:empty {
+  display: none;
+}
+
+.bench-projection__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label value' 'bar bar' 'unit unit';
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-3);
+}
+
+.bench-projection__label {
+  grid-area: label;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--fg-1);
+}
+
+.bench-projection__key {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.bench-projection__value {
+  grid-area: value;
+  font-size: var(--fs-16);
+  font-weight: var(--fw-mono-strong);
+  color: var(--fg-0);
+}
+
+.bench-projection__bar {
+  grid-area: bar;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--bg-4);
+  overflow: hidden;
+}
+
+.bench-projection__fill {
+  display: block;
+  width: max(3px, calc(var(--ratio) * 100%));
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c);
+  transition: width var(--dur-4) var(--ease-out);
+}
+
+.bench-projection__unit {
+  grid-area: unit;
+  font-size: var(--fs-11);
+  color: var(--fg-2);
+}
+
+/* --- Rapport : environnement, exports ---------------------------------------------------- */
+
+#bench-report .card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+#bench-report .card__actions {
+  gap: var(--sp-2h);
+  margin: -2px 0;
+}
+
+#bench-report .card__footer {
+  flex-wrap: wrap;
+}
+
+.bench-report__label {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-medium);
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.bench-report__picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.bench-report__saved code {
+  color: var(--fg-1);
+}
+
+.bench-report__pending[hidden],
+.bench-report__notice:empty {
+  display: none;
+}
+
+.bench-report__notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* --- Largeurs réduites (tiroir d'écoute ouvert, fenêtre de 1100 px) ------------------------ */
+
+@container content (max-width: 1100px) {
+  .bench-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .bench-config__row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .bench-config__row > :nth-child(2) {
+    grid-column: 2 / -1;
+  }
+
+  .bench-config__row > :first-child {
+    grid-column: 1 / 2;
+  }
+}
+
+@container content (min-width: 620.02px) and (max-width: 840px) {
+  /* Trois colonnes : une dernière carte seule sur sa rangée en occupe toute la largeur. */
+  .bench-fact:last-child:nth-child(3n + 1) {
+    grid-column: 1 / -1;
+  }
+}
+
+@container content (max-width: 840px) {
+  .bench-toc {
+    flex-basis: 100%;
+    margin-left: calc(-1 * var(--sp-2));
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .bench-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bench-config__suites,
+  .bench-intro__suites {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bench-intro__suite:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .bench-intro__suite:nth-child(n + 3) {
+    border-top: 1px solid var(--border-1);
+  }
+
+  .bench-config__row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bench-config__row > :first-child,
+  .bench-config__row > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .bench-config__foot {
+    flex-wrap: wrap;
+  }
+
+  .bench-config__foot > .btn {
+    margin-left: auto;
+  }
+
+  .bench-wire {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container content (max-width: 620px) {
+  .bench-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bench-fact,
+  .bench-run__step[data-state='active'] .bench-run__marker {
+    animation: none;
+  }
+}

@@ -1,0 +1,618 @@
+/* Page « Vue d'ensemble » (#/overview) — mise en page et visuels propres à la page.
+   Tout passe par les jetons de tokens.css : les deux thèmes suivent sans règle dédiée. */
+
+/* --- En-tête ------------------------------------------------------------------ */
+
+.ov-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 22px;
+}
+
+.ov-chip-link {
+  display: inline-flex;
+  border-radius: var(--r-chip);
+  transition: filter var(--dur-1) var(--ease-out);
+}
+
+.ov-chip-link:hover {
+  text-decoration: none;
+  filter: brightness(1.12);
+}
+
+@container content (max-width: 1040px) {
+  [data-page='overview'] > .page-header {
+    flex-wrap: wrap;
+  }
+
+  [data-page='overview'] > .page-header .page-header__actions {
+    flex-basis: 100%;
+    padding-top: 0;
+  }
+}
+
+.ov-offline[hidden] {
+  display: none;
+}
+
+/* Même respiration que les autres pages : 32 px avant une section titrée. */
+[data-page='overview'] > .section {
+  margin-top: var(--sp-2);
+}
+
+/* --- Indicateurs -------------------------------------------------------------- */
+
+.ov-kpi__skeleton {
+  display: none;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-height: 86px;
+}
+
+.ov-kpi[data-loading] .stat {
+  display: none;
+}
+
+.ov-kpi[data-loading] .ov-kpi__skeleton {
+  display: flex;
+}
+
+.ov-kpi .stat__trailing {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ov-kpi[data-alert] .stat__number {
+  color: var(--danger-fg);
+}
+
+.ov-kpi__flows {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.ov-kpi__flow {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--fg-1);
+}
+
+.ov-kpi__flow svg {
+  color: var(--fg-2);
+}
+
+/* --- Architecture en direct --------------------------------------------------- */
+
+.ov-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  font-size: var(--fs-12);
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.ov-legend__key {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1h);
+}
+
+.ov-legend__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--fg-1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fg-1) 20%, transparent);
+}
+
+.ov-legend__dot[data-tone='danger'] {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+.ov-diagram {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 394px;
+}
+
+.ov-diagram::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--grid-line) 1px, transparent 1.5px);
+  background-size: 20px 20px;
+  -webkit-mask-image: radial-gradient(ellipse 62% 78% at 50% 48%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 62% 78% at 50% 48%, #000 35%, transparent 100%);
+  pointer-events: none;
+}
+
+.ov-diagram__svg {
+  position: relative;
+  display: block;
+  max-width: none;
+  font-family: var(--font-sans);
+  transition: opacity var(--dur-4) var(--ease-out), filter var(--dur-4) var(--ease-out);
+}
+
+.ov-diagram[data-offline] .ov-diagram__svg {
+  opacity: 0.5;
+  filter: saturate(0.25);
+}
+
+.ov-diagram__hits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ov-lane-hit {
+  position: absolute;
+  border-radius: 14px;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.ov-wire {
+  fill: none;
+  stroke: var(--lane-line);
+  stroke-width: 1.5;
+}
+
+.ov-wire--local,
+.ov-lane--local .ov-wire--glow {
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
+.ov-wire--glow {
+  stroke: var(--lane);
+  opacity: 0;
+  transition: opacity var(--dur-4) var(--ease-out), stroke var(--dur-2) var(--ease-out);
+}
+
+.ov-lane[data-hover] .ov-wire--glow {
+  opacity: 0.55;
+}
+
+.ov-lane[data-busy] .ov-wire--glow,
+.ov-lane[data-flash='ok'] .ov-wire--glow {
+  opacity: 0.9;
+}
+
+.ov-lane[data-flash='error'] .ov-wire--glow {
+  stroke: var(--danger);
+  opacity: 0.95;
+}
+
+.ov-lane__band {
+  fill: var(--lane-soft);
+  fill-opacity: 0;
+  stroke: var(--lane-line);
+  stroke-opacity: 0;
+  transition: fill-opacity var(--dur-2) var(--ease-out), stroke-opacity var(--dur-2) var(--ease-out);
+}
+
+.ov-lane[data-hover] .ov-lane__band {
+  fill-opacity: 0.45;
+  stroke-opacity: 1;
+}
+
+.ov-zone {
+  fill: var(--fg-3);
+  font-size: 10.5px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.ov-lane__swatch {
+  fill: var(--lane);
+}
+
+.ov-lane__label {
+  fill: var(--lane-fg);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.005em;
+}
+
+.ov-lane__note {
+  fill: var(--fg-2);
+  font-weight: var(--fw-regular);
+}
+
+.ov-lane__meta {
+  fill: var(--fg-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--fw-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.ov-lane[data-idle] .ov-lane__meta {
+  fill: var(--fg-3);
+}
+
+.ov-lane__errors {
+  fill: var(--danger-fg);
+}
+
+.ov-node__base {
+  fill: var(--bg-2);
+}
+
+.ov-node__box {
+  fill: var(--bg-3);
+  stroke: var(--border-2);
+  stroke-width: 1;
+  transition: fill var(--dur-3) var(--ease-out), stroke var(--dur-3) var(--ease-out);
+}
+
+.ov-node--end .ov-node__box {
+  fill: var(--lane-soft);
+  stroke: var(--lane-line);
+}
+
+.ov-node--proxy .ov-node__box {
+  fill: transparent;
+  stroke: var(--border-3);
+  stroke-dasharray: 4 3;
+}
+
+.ov-node--proxy[data-tone='warning'] .ov-node__box {
+  fill: var(--warning-soft);
+  stroke: var(--warning-line);
+}
+
+.ov-node--proxy[data-tone='danger'] .ov-node__box {
+  fill: var(--danger-soft);
+  stroke: var(--danger-line);
+}
+
+.ov-node--service .ov-node__box {
+  fill: var(--accent-softer);
+  stroke: var(--accent-line);
+}
+
+.ov-node__title {
+  fill: var(--fg-0);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.005em;
+}
+
+.ov-node__sub {
+  fill: var(--fg-2);
+  font-size: 11px;
+}
+
+.ov-node--proxy[data-tone='warning'] .ov-node__sub {
+  fill: var(--warning-fg);
+}
+
+.ov-node--proxy[data-tone='danger'] .ov-node__sub,
+.ov-node[data-state='down'] .ov-node__sub {
+  fill: var(--danger-fg);
+}
+
+.ov-node__fact,
+.ov-port {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: var(--fw-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-node__fact {
+  fill: var(--fg-1);
+}
+
+.ov-port {
+  fill: var(--fg-2);
+}
+
+.ov-node__icon {
+  color: var(--fg-1);
+}
+
+.ov-node--service .ov-node__icon {
+  color: var(--accent-fg);
+}
+
+.ov-node__dot {
+  fill: var(--fg-3);
+  transition: fill var(--dur-3) var(--ease-out);
+}
+
+.ov-node[data-state='up'] .ov-node__dot {
+  fill: var(--success);
+}
+
+.ov-node[data-state='down'] .ov-node__dot {
+  fill: var(--danger);
+}
+
+.ov-node__ring {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 1.5;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ov-node[data-state='up'] .ov-node__ring {
+  animation: ov-ping 2.6s var(--ease-out) infinite;
+}
+
+.ov-node__pulse {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ov-pin {
+  fill: var(--lane);
+  stroke: var(--bg-2);
+  stroke-width: 1.5;
+}
+
+.ov-packet__core {
+  fill: var(--c);
+}
+
+.ov-packet__halo {
+  fill: var(--c);
+  opacity: 0.22;
+}
+
+.ov-packet[data-error] .ov-packet__core,
+.ov-packet[data-error] .ov-packet__halo {
+  fill: var(--danger);
+}
+
+@keyframes ov-ping {
+  0% { opacity: 0.7; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(2.8); }
+}
+
+/* --- Activité récente, débit, inventaire -------------------------------------- */
+
+.ov-activity {
+  display: flex;
+  flex-direction: column;
+  min-height: 516px;
+}
+
+.ov-activity > .empty {
+  flex: 1;
+  justify-content: center;
+}
+
+.ov-activity__state {
+  padding: var(--sp-5);
+}
+
+/* Sept colonnes dans une demi-page : gouttières resserrées, code d'erreur tronqué (complet au survol). */
+.ov-activity .table__th:not(:first-child),
+.ov-activity .table__td:not(:first-child) {
+  padding-left: var(--sp-2);
+}
+
+.ov-activity .table__th:not(:last-child),
+.ov-activity .table__td:not(:last-child) {
+  padding-right: var(--sp-2);
+}
+
+.ov-activity .badge {
+  max-width: 112px;
+}
+
+.ov-activity .badge__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La courbe glisse en continu : la graduation qui entre par la droite reste dans le cadre. */
+.ov-throughput .chart__plot {
+  overflow: hidden;
+}
+
+.ov-row-new .table__td {
+  animation: ov-row-in 1.6s var(--ease-out);
+}
+
+@keyframes ov-row-in {
+  from { background-color: var(--accent-soft); }
+  to { background-color: transparent; }
+}
+
+.ov-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  gap: var(--grid-gap);
+  height: 100%;
+}
+
+@container content (max-width: 1100px) {
+  .ov-activity {
+    min-height: 340px;
+  }
+
+  .ov-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+}
+
+.ov-tiles {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--sp-5) var(--sp-4);
+}
+
+.ov-tile {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.ov-tile:nth-child(-n + 2) {
+  grid-column: span 3;
+}
+
+.ov-tile__value {
+  font-size: var(--fs-16);
+  line-height: 1.2;
+  font-weight: var(--fw-mono-strong);
+  letter-spacing: -0.02em;
+  color: var(--fg-0);
+  white-space: nowrap;
+}
+
+.ov-tile:nth-child(-n + 2) .ov-tile__value {
+  font-size: var(--fs-20);
+  letter-spacing: -0.03em;
+}
+
+.ov-tile[data-alert] .ov-tile__value {
+  color: var(--warning-fg);
+}
+
+.ov-tiles[data-empty] .ov-tile__value {
+  color: var(--fg-3);
+}
+
+.ov-tile__hint {
+  font-size: var(--fs-11);
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+
+/* --- Parcours ----------------------------------------------------------------- */
+
+.ov-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@container content (max-width: 1100px) {
+  .ov-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ov-step {
+  gap: var(--sp-2);
+  padding: var(--sp-5);
+}
+
+.ov-step__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.ov-step__head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border-2), transparent);
+}
+
+.ov-step__number {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+  color: var(--accent-fg);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-mono-strong);
+}
+
+.ov-step__verb {
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-0);
+}
+
+.ov-step__question {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  color: var(--fg-0);
+}
+
+.ov-step__text {
+  flex: 1;
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  color: var(--fg-2);
+}
+
+.ov-step__links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: var(--sp-2) calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2));
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-1);
+}
+
+.ov-step__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 32px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-medium);
+  color: var(--fg-1);
+  transition: background-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+
+.ov-step__link:hover {
+  background: var(--bg-hover);
+  color: var(--fg-0);
+  text-decoration: none;
+}
+
+.ov-step__link-icon {
+  display: inline-flex;
+  color: var(--fg-2);
+}
+
+.ov-step__link-arrow {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--fg-3);
+  transition: transform var(--dur-2) var(--ease-out), color var(--dur-2) var(--ease-out);
+}
+
+.ov-step__link:hover .ov-step__link-arrow {
+  color: var(--accent-fg);
+  transform: translateX(2px);
+}

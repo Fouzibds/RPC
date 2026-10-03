@@ -1,0 +1,129 @@
+// Contrat IDL (Interface Definition Language) — version 1
+// Service de Calcul & Gestion d'Inventaire Distribué.
+//
+// Ce fichier EST le contrat : protoc en dérive le stub client et le squelette
+// serveur. Sur le fil, seuls les NUMÉROS de champ et les types de fil (wire
+// types) voyagent — jamais les noms. Toute évolution doit donc préserver les
+// numéros et les types existants (voir service_v2.proto pour ce qu'il ne faut
+// pas faire).
+syntax = "proto3";
+
+package rpcexplorer.v1;
+
+service InventoryService {
+  // Appels unaires : une requête, une réponse.
+  rpc CalculateFactorial (FactorialRequest) returns (FactorialReply);
+  rpc GetProductDetails (ProductRequest) returns (Product);
+  rpc UpdateStock (UpdateStockRequest) returns (UpdateStockReply);
+  rpc ListProducts (ListProductsRequest) returns (ProductList);
+
+  // Streaming serveur : une requête, un flux de réponses.
+  rpc StreamAnalytics (AnalyticsRequest) returns (stream AnalyticsSnapshot);
+
+  // Streaming client : un flux de requêtes, une réponse.
+  rpc BulkUpdateStock (stream UpdateStockRequest) returns (BulkUpdateSummary);
+
+  // Streaming bidirectionnel : deux flux indépendants sur la même connexion.
+  rpc CheckStock (stream ProductRequest) returns (stream StockLevel);
+}
+
+message FactorialRequest {
+  uint32 n = 1;
+}
+
+message FactorialReply {
+  uint32 n = 1;
+  string result = 2;       // grand entier transmis en texte
+  uint32 digits = 3;
+  double compute_us = 4;
+}
+
+message ProductRequest {
+  string product_id = 1;
+}
+
+message Dimensions {
+  double width_cm = 1;
+  double height_cm = 2;
+  double depth_cm = 3;
+  double weight_kg = 4;
+}
+
+message Supplier {
+  string name = 1;
+  string country = 2;
+  uint32 lead_time_days = 3;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string category = 3;
+  double price = 4;
+  int32 stock = 5;
+  string warehouse = 6;
+  repeated string tags = 7;
+  Dimensions dimensions = 8;
+  Supplier supplier = 9;
+  double rating = 10;
+  bool active = 11;
+  int64 updated_at_ms = 12;
+  uint32 version = 13;
+  string description = 14;
+}
+
+message UpdateStockRequest {
+  string product_id = 1;
+  sint32 delta = 2;              // sint32 : encodage ZigZag, compact pour les négatifs
+  string idempotency_key = 3;
+}
+
+message UpdateStockReply {
+  string product_id = 1;
+  int32 previous_stock = 2;
+  int32 new_stock = 3;
+  sint32 delta = 4;
+  uint32 version = 5;
+  bool applied = 6;
+  int64 updated_at_ms = 7;
+}
+
+message ListProductsRequest {
+  uint32 limit = 1;
+  string category = 2;
+}
+
+message ProductList {
+  repeated Product products = 1;
+  uint32 total = 2;
+}
+
+message AnalyticsRequest {
+  uint32 samples = 1;
+  uint32 interval_ms = 2;
+}
+
+message AnalyticsSnapshot {
+  uint32 seq = 1;
+  int64 timestamp_ms = 2;
+  int64 total_units = 3;
+  double inventory_value = 4;
+  uint32 low_stock_count = 5;
+  double orders_per_min = 6;
+  string hot_product_id = 7;
+  uint64 operations = 8;
+}
+
+message BulkUpdateSummary {
+  uint32 applied = 1;
+  uint32 rejected = 2;
+  sint64 total_delta = 3;
+  repeated string errors = 4;
+}
+
+message StockLevel {
+  string product_id = 1;
+  int32 stock = 2;
+  bool available = 3;
+  string warehouse = 4;
+}

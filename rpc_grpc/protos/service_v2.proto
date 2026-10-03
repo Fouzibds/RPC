@@ -1,0 +1,103 @@
+// Contrat IDL — version 2 « mal évoluée »
+//
+// Ce contrat simule un serveur redéployé SANS que les clients aient régénéré
+// leurs stubs. Il mélange volontairement :
+//   [COMPATIBLE]  des évolutions sûres (ajout de champs avec de nouveaux numéros) ;
+//   [BREAKING]    des ruptures de contrat (renommage de RPC, numéro de champ
+//                 réutilisé, changement de type de fil).
+//
+// Le serveur v2 publie ces messages sous le MÊME nom de service que la v1
+// (rpcexplorer.v1.InventoryService) : pour un client v1, rien ne signale que
+// le contrat a changé… jusqu'à l'appel.
+syntax = "proto3";
+
+package rpcexplorer.v2;
+
+service InventoryService {
+  // [COMPATIBLE] mêmes numéros, nouveaux champs facultatifs.
+  rpc CalculateFactorial (FactorialRequest) returns (FactorialReply);
+
+  // [BREAKING] renommée : GetProductDetails n'existe plus côté serveur.
+  rpc GetProduct (ProductRequest) returns (Product);
+
+  // [BREAKING] la requête réutilise le n°2 avec un autre type.
+  rpc UpdateStock (UpdateStockRequest) returns (UpdateStockReply);
+
+  // [BREAKING] renvoie des Product v2 : un client v1 lit des données fausses.
+  rpc ListProducts (ListProductsRequest) returns (ProductList);
+}
+
+message FactorialRequest {
+  uint32 n = 1;
+  bool use_cache = 2;            // [COMPATIBLE] nouveau champ, nouveau numéro
+}
+
+message FactorialReply {
+  uint32 n = 1;
+  string result = 2;
+  uint32 digits = 3;
+  double compute_us = 4;
+  string algorithm = 5;          // [COMPATIBLE] ignoré par les anciens clients
+}
+
+message ProductRequest {
+  string product_id = 1;
+}
+
+message Dimensions {
+  double width_cm = 1;
+  double height_cm = 2;
+  double depth_cm = 3;
+  double weight_kg = 4;
+}
+
+message Supplier {
+  string name = 1;
+  string country = 2;
+  uint32 lead_time_days = 3;
+}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string category = 3;
+  int64 price_cents = 4;         // [BREAKING] était « double price » : type de fil 1 (64 bits) -> 0 (varint)
+  int32 reserved = 5;            // [BREAKING] n°5 réutilisé : c'était « stock »
+  string warehouse = 6;
+  repeated string tags = 7;
+  Dimensions dimensions = 8;
+  Supplier supplier = 9;
+  double rating = 10;
+  bool active = 11;
+  int64 updated_at_ms = 12;
+  uint32 version = 13;
+  string description = 14;
+  int32 stock = 15;              // « stock » déplacé au n°15
+}
+
+message UpdateStockRequest {
+  string product_id = 1;
+  string warehouse = 2;          // [BREAKING] n°2 réutilisé : c'était « sint32 delta »
+  string idempotency_key = 3;
+  sint32 delta = 4;              // « delta » déplacé au n°4
+}
+
+message UpdateStockReply {
+  string product_id = 1;
+  int32 previous_stock = 2;
+  int32 new_stock = 3;
+  sint32 delta = 4;
+  uint32 version = 5;
+  bool applied = 6;
+  int64 updated_at_ms = 7;
+}
+
+message ListProductsRequest {
+  uint32 limit = 1;
+  string category = 2;
+}
+
+message ProductList {
+  repeated Product products = 1;
+  uint32 total = 2;
+}
