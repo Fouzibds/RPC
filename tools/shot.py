@@ -1,4 +1,4 @@
-"""Outil de développement : capture d'écran headless du dashboard (Edge via Playwright).
+"""Outil de développement : capture d'écran headless du dashboard (Playwright).
 
     python tools/shot.py http://127.0.0.1:8000/#/benchmark out.png --do "click:#run" --do "wait:1500"
 
@@ -15,7 +15,15 @@ from __future__ import annotations
 import argparse
 import sys
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Browser, Error as PlaywrightError, Playwright, sync_playwright
+
+
+def launch(p: Playwright) -> Browser:
+    """Microsoft Edge s'il est installé (Windows), sinon le Chromium fourni avec Playwright."""
+    try:
+        return p.chromium.launch(channel="msedge", headless=True)
+    except PlaywrightError:
+        return p.chromium.launch(headless=True)
 
 
 def main() -> int:
@@ -34,7 +42,7 @@ def main() -> int:
 
     problems: list[str] = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="msedge", headless=True)
+        browser = launch(p)
         context = browser.new_context(
             viewport={"width": args.width, "height": args.height},
             device_scale_factor=args.scale,

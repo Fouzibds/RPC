@@ -1,10 +1,11 @@
 """Tests de bout en bout du dashboard, dans un vrai navigateur (plan §14).
 
-Microsoft Edge sans interface, piloté par Playwright, ouvre le dashboard d'un laboratoire à
-ports éphémères servi par uvicorn dans un thread ; les rapports vont dans un dossier
-temporaire. Chaque test manipule l'interface comme un utilisateur, puis échoue aussi si la
-page a produit une erreur de console, une exception JavaScript, une requête en échec ou une
-réponse HTTP ≥ 400. Sans Playwright ou sans Edge, le module entier est ignoré.
+Un navigateur sans interface (Microsoft Edge, ou à défaut le Chromium de Playwright) ouvre
+le dashboard d'un laboratoire à ports éphémères servi par uvicorn dans un thread ; les
+rapports vont dans un dossier temporaire. Chaque test manipule l'interface comme un
+utilisateur, puis échoue aussi si la page a produit une erreur de console, une exception
+JavaScript, une requête en échec ou une réponse HTTP ≥ 400. Sans Playwright ou sans
+navigateur, le module entier est ignoré.
 
     .venv/Scripts/python.exe -m pytest tests/test_frontend_smoke.py -q -o addopts=""
 """
@@ -25,7 +26,7 @@ pytest.importorskip("playwright.sync_api", reason="Playwright n'est pas install�
 # Imports placés après ``importorskip`` : sans Playwright, aucun d'eux ne doit être tenté.
 from playwright.sync_api import Browser, Locator, Page, expect, sync_playwright
 
-from _frontend_support import BrowserUnavailable, LiveDashboard, PageWatch, launch_edge, lingering_threads
+from _frontend_support import BrowserUnavailable, LiveDashboard, PageWatch, launch_browser, lingering_threads
 from common import config
 from common.telemetry import EventBus
 from lab import LabRuntime
@@ -49,7 +50,7 @@ DUPLICATE_EXECUTION = "duplicate_execution"
 OUTCOME_BADGES = {
     "compatible": "Compatible",
     "rejected": "Rejet",
-    "crash": "Crash",
+    "crash": "Plantage",
     "silent_corruption": "Corruption silencieuse",
 }
 
@@ -82,15 +83,15 @@ Visit = Callable[..., ContextManager[Page]]
 
 @pytest.fixture(scope="module")
 def browser() -> Iterator[Browser]:
-    """Edge sans interface pour tout le module — ou le module entier ignoré s'il est introuvable."""
+    """Un navigateur sans interface pour tout le module — ou le module entier ignoré s'il est introuvable."""
     with sync_playwright() as playwright:
         try:
-            edge = launch_edge(playwright)
+            chromium = launch_browser(playwright)
         except BrowserUnavailable as exc:
-            pytest.skip(f"Microsoft Edge ne peut pas être lancé : {exc}")
+            pytest.skip(f"Aucun navigateur ne peut être lancé ({exc})")
         expect.set_options(timeout=WAIT_MS)
-        yield edge
-        edge.close()
+        yield chromium
+        chromium.close()
 
 
 @pytest.fixture(scope="module")

@@ -39,7 +39,7 @@ from .theme import (
 OUTCOME_BADGES: dict[str, tuple[str, str]] = {
     "compatible": ("COMPATIBLE", SUCCESS),
     "rejected": ("REJET", WARNING),
-    "crash": ("CRASH", ORANGE),
+    "crash": ("PLANTAGE", ORANGE),
     "silent_corruption": ("CORRUPTION SILENCIEUSE", DANGER),
 }
 _KIND_BADGES: dict[str, tuple[str, str]] = {"breaking": ("BREAKING", DANGER), "compatible": ("COMPATIBLE", SUCCESS)}

@@ -297,7 +297,7 @@ def test_contract_shows_diff_changes_and_scenarios() -> None:
     assert "rpc_grpc/protos/service.proto" in out and "rpc_grpc/protos/service_v2.proto" in out
     assert "-   rpc GetProductDetails (ProductRequest) returns (Product);" in out
     assert "+   rpc GetProduct (ProductRequest) returns (Product);" in out
-    for tag in ("BREAKING", "COMPATIBLE", "REJET", "CRASH", "CORRUPTION SILENCIEUSE"):
+    for tag in ("BREAKING", "COMPATIBLE", "REJET", "PLANTAGE", "CORRUPTION SILENCIEUSE"):
         assert tag in out
     assert "Attendu — ce qu'un serveur v1 aurait fait" in out and "Observé — face au serveur v2" in out
     assert "UNIMPLEMENTED" in out and "-32602" in out
