@@ -35,7 +35,7 @@ RUNNING, DONE, ERROR = "running", "done", "error"
 HISTORY_LIMIT = 40              # tâches terminées conservées en mémoire
 _LIVE_PROGRESS_CEILING = 0.95   # la durée d'un scénario n'est qu'indicative : 100 % est réservé à la fin réelle
 
-_OCCUPANTS = {BENCHMARK: "le banc d'essai", FAILURE: "le scénario de panne « {title} »"}
+_OCCUPANTS = {BENCHMARK: "le banc d’essai", FAILURE: "le scénario de panne « {title} »"}
 _SCENARIOS = {scenario["id"]: scenario for scenario in failure_simulation.SCENARIOS}
 
 _log = logging.getLogger(__name__)
@@ -158,7 +158,7 @@ class JobManager:
 
     def start_benchmark(self, config: dict[str, Any]) -> Job:
         """Lance le banc d'essai avec une configuration déjà validée (``resolve_config``)."""
-        return self._launch(BENCHMARK, "Banc d'essai", config, lambda job: self._run_benchmark(job, config))
+        return self._launch(BENCHMARK, "Banc d’essai", config, lambda job: self._run_benchmark(job, config))
 
     def start_failure(self, scenario_id: str, protocol: str, options: dict[str, Any] | None) -> Job:
         """Lance un scénario de panne ; ``scenario_id`` est un identifiant de ``SCENARIOS``."""

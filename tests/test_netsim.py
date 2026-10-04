@@ -536,7 +536,7 @@ def test_context_manager_starts_and_stops(echo: EchoServer) -> None:
 
 
 def test_listening_on_a_busy_port_fails_clearly(proxy: ChaosProxy, echo: EchoServer) -> None:
-    with pytest.raises(OSError, match="impossible d'écouter"):
+    with pytest.raises(OSError, match="impossible d’écouter"):
         ChaosProxy("doublon", proxy.port, echo.port).start()
 
 

@@ -109,7 +109,7 @@ def wait_for_job(client: TestClient, job_id: str) -> Message:
         if job["state"] != "running":
             return job
         time.sleep(0.05)
-    raise AssertionError(f"la tâche {job_id} ne s'est pas terminée en {JOB_PATIENCE_S} s")
+    raise AssertionError(f"la tâche {job_id} ne s’est pas terminée en {JOB_PATIENCE_S} s")
 
 
 def error_of(response: Any, status: int) -> Message:
@@ -507,7 +507,7 @@ def test_lab_is_busy_while_a_benchmark_runs(client: TestClient, monkeypatch: pyt
         progress("latency", 0.5, "Mesure en cours", {"latency": {"results": []}})
         started.set()
         assert release.wait(JOB_PATIENCE_S)
-        raise RuntimeError("banc d'essai interrompu par le test")
+        raise RuntimeError("banc d’essai interrompu par le test")
 
     monkeypatch.setattr("dashboard.jobs.run_full_benchmark", stalled_benchmark)
     job_id = client.post("/api/benchmark/run", json={"quick": True}).json()["job_id"]
@@ -533,7 +533,7 @@ def test_lab_is_busy_while_a_benchmark_runs(client: TestClient, monkeypatch: pyt
         release.set()
     failed = wait_for_job(client, job_id)
     assert failed["state"] == "error" and failed["result"] is None
-    assert failed["error"] == {"code": "FAILED_PRECONDITION", "message": "banc d'essai interrompu par le test"}
+    assert failed["error"] == {"code": "FAILED_PRECONDITION", "message": "banc d’essai interrompu par le test"}
     assert client.get("/api/status").json()["job"] is None
 
 
@@ -953,7 +953,7 @@ def test_missing_interface_gets_a_french_fallback_page(runtime: LabRuntime, tmp_
     with TestClient(create_app(runtime, static_dir=tmp_path / "absent")) as bare:
         page = bare.get("/")
         assert page.status_code == 200 and page.headers["content-type"].startswith("text/html")
-        assert "n'est pas encore construite" in page.text and 'lang="fr"' in page.text
+        assert "n’est pas encore construite" in page.text and 'lang="fr"' in page.text
         assert page.headers["cache-control"] == "no-store"
         assert bare.get("/api/health").json()["status"] == "ok"      # l'API ne dépend pas de l'interface
         error_of(bare.get("/js/app.js"), 404)
@@ -964,7 +964,7 @@ def test_static_files_are_served_after_the_api_and_never_cached(runtime: LabRunt
     (tmp_path / "index.html").write_text("<!doctype html><title>Interface de test</title>", encoding="utf-8")
     (tmp_path / "js" / "app.js").write_text("export const ready = true;\n", encoding="utf-8")
     (tmp_path / "api").mkdir()
-    (tmp_path / "api" / "health").write_text("masqué par la route de l'API", encoding="utf-8")
+    (tmp_path / "api" / "health").write_text("masqué par la route de l’API", encoding="utf-8")
     with TestClient(create_app(runtime, static_dir=tmp_path)) as site:
         index = site.get("/")
         assert "Interface de test" in index.text and index.headers["cache-control"] == "no-store"

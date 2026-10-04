@@ -109,7 +109,7 @@ def pipeline_table(trace: CallTrace, *, explain: bool = False, narrow: bool = Fa
         Column("Rôle", style=SUBTLE, wide_only=True),
         Column("Durée", numeric=True),
         Column("Octets", numeric=True),
-        Column("Part de l'appel", wide_only=True),
+        Column("Part de l’appel", wide_only=True),
     )
     streamed: Counter[tuple[str, str]] = Counter()
     streamed_bytes: Counter[tuple[str, str]] = Counter()
@@ -361,13 +361,13 @@ def wire_report(console: Console, trace: CallTrace | None, *, explain: bool = Fa
     stages = {event.stage: event for event in reversed(trace.events)}   # première occurrence de chaque étape
     console.print(pipeline_table(trace, explain=explain, narrow=narrow))
     if trace.protocol == "local":
-        hint(console, "Appel local : ni sérialisation ni réseau, donc aucun octet à montrer — c'est le point zéro "
+        hint(console, "Appel local : ni sérialisation ni réseau, donc aucun octet à montrer — c’est le point zéro "
                       "auquel se comparent les trois middlewares.")
         return
     request, response = stages.get("client.send"), stages.get("client.receive")
     label = PROTOCOL_LABELS.get(trace.protocol, trace.protocol)
     if request is None:
-        hint(console, "Rien n'a été envoyé : l'appel a échoué avant d'atteindre le réseau.")
+        hint(console, "Rien n’a été envoyé : l’appel a échoué avant d’atteindre le réseau.")
         return
     console.print(message_panel(request, f"Requête — {label}", color, narrow=narrow))
     item = stages.get("client.stream_item")
@@ -376,4 +376,4 @@ def wire_report(console: Console, trace: CallTrace | None, *, explain: bool = Fa
     if response is not None:
         console.print(message_panel(response, f"Réponse — {label}", color, narrow=narrow))
     else:
-        hint(console, "Aucune réponse n'est parvenue au client : c'est tout ce qu'il sait de cet appel.")
+        hint(console, "Aucune réponse n’est parvenue au client : c’est tout ce qu’il sait de cet appel.")

@@ -88,17 +88,17 @@ OUTCOME_INFO: dict[str, dict[str, Any]] = {
     "compatible": {
         "label": "Compatible",
         "danger": 0,
-        "text": "L'ancien client fonctionne sans rien remarquer.",
+        "text": "L’ancien client fonctionne sans rien remarquer.",
     },
     "rejected": {
         "label": "Rejet explicite",
         "danger": 1,
-        "text": "Le serveur refuse l'appel : la panne est visible, rien n'est corrompu.",
+        "text": "Le serveur refuse l’appel : la panne est visible, rien n’est corrompu.",
     },
     "crash": {
         "label": "Plantage du client",
         "danger": 2,
-        "text": "L'appel réussit, puis le code du client échoue en lisant le résultat.",
+        "text": "L’appel réussit, puis le code du client échoue en lisant le résultat.",
     },
     "silent_corruption": {
         "label": "Corruption silencieuse",
@@ -216,64 +216,64 @@ _LESSONS: dict[str, str] = {
     "package_renamed": (
         "Changer de package est la façon propre de publier une version incompatible : les deux services ont "
         "des chemins distincts et peuvent être servis côte à côte pendant que les clients migrent. Le serveur "
-        "v2 du laboratoire fait l'inverse — il publie les messages v2 sous le nom de service v1 — et c'est ce "
-        "qui rend chaque rupture invisible jusqu'à l'appel."
+        "v2 du laboratoire fait l’inverse — il publie les messages v2 sous le nom de service v1 — et c’est ce "
+        "qui rend chaque rupture invisible jusqu’à l’appel."
     ),
     "rpc_renamed": (
-        "Protobuf ignore les noms de champs, mais pour gRPC le nom d'une RPC est son adresse. La renommer "
+        "Protobuf ignore les noms de champs, mais pour gRPC le nom d’une RPC est son adresse. La renommer "
         "revient à la supprimer pour tous les clients déjà déployés. On ajoute la nouvelle RPC, on garde "
-        "l'ancienne (marquée « deprecated ») et on ne la retire qu'une fois tous les clients migrés."
+        "l’ancienne (marquée « deprecated ») et on ne la retire qu’une fois tous les clients migrés."
     ),
     "rpcs_removed": (
-        "Supprimer une RPC est toujours une rupture pour qui l'appelle encore. On la déprécie d'abord, on "
-        "mesure son usage, on la retire en dernier — quand plus personne ne l'appelle."
+        "Supprimer une RPC est toujours une rupture pour qui l’appelle encore. On la déprécie d’abord, on "
+        "mesure son usage, on la retire en dernier — quand plus personne ne l’appelle."
     ),
     "rpcs_added": (
-        "Ajouter une RPC ne change rien pour les clients existants : ils n'appellent pas ce chemin. C'est "
-        "l'outil normal d'une évolution compatible."
+        "Ajouter une RPC ne change rien pour les clients existants : ils n’appellent pas ce chemin. C’est "
+        "l’outil normal d’une évolution compatible."
     ),
     "rpc_retyped": (
-        "Le chemin de la méthode n'a pas changé, donc rien ne signale la rupture : le serveur décode avec "
-        "son nouveau message ce que le client a sérialisé avec l'ancien. Changer la signature d'une RPC "
+        "Le chemin de la méthode n’a pas changé, donc rien ne signale la rupture : le serveur décode avec "
+        "son nouveau message ce que le client a sérialisé avec l’ancien. Changer la signature d’une RPC "
         "revient à en créer une autre : il lui faut un autre nom."
     ),
     "number_reused": (
-        "Sur le fil, un champ n'est identifié que par son numéro. Le réattribuer fait lire à l'un ce que "
-        "l'autre n'a pas écrit, sans aucune erreur de décodage : la donnée de l'ancien champ est perdue ou "
+        "Sur le fil, un champ n’est identifié que par son numéro. Le réattribuer fait lire à l’un ce que "
+        "l’autre n’a pas écrit, sans aucune erreur de décodage : la donnée de l’ancien champ est perdue ou "
         "prise pour une autre. Un numéro retiré doit être déclaré « reserved » pour que protoc refuse de le "
         "réutiliser."
     ),
     "type_changed": (
-        "Le type d'un champ fixe la façon de trouver et de décoder sa valeur. Pour changer de représentation "
+        "Le type d’un champ fixe la façon de trouver et de décoder sa valeur. Pour changer de représentation "
         "(ici des euros en virgule flottante vers des centimes entiers), on ajoute un nouveau champ sous un "
-        "nouveau numéro et l'on continue de remplir l'ancien pendant la migration."
+        "nouveau numéro et l’on continue de remplir l’ancien pendant la migration."
     ),
     "field_renamed": (
         "Les noms ne voyagent pas : deux versions qui ne diffèrent que par un nom de champ échangent les "
-        "mêmes octets. Seuls le code généré et la représentation JSON du message changent — c'est une "
+        "mêmes octets. Seuls le code généré et la représentation JSON du message changent — c’est une "
         "rupture de code source, pas une rupture de fil."
     ),
     "field_moved": (
-        "Le nom d'un champ n'existe que dans le code généré ; son identité sur le fil est son numéro. "
-        "Déplacer un champ, c'est le supprimer et en créer un autre : les deux versions ne se comprennent "
+        "Le nom d’un champ n’existe que dans le code généré ; son identité sur le fil est son numéro. "
+        "Déplacer un champ, c’est le supprimer et en créer un autre : les deux versions ne se comprennent "
         "plus sur cette donnée, et rien ne le signale."
     ),
     "field_added": (
-        "C'est la seule évolution réellement sûre : un nouveau champ, sous un numéro jamais utilisé. Les "
-        "anciens lecteurs sautent ce qu'ils ne connaissent pas, les nouveaux lisent une valeur par défaut "
+        "C’est la seule évolution réellement sûre : un nouveau champ, sous un numéro jamais utilisé. Les "
+        "anciens lecteurs sautent ce qu’ils ne connaissent pas, les nouveaux lisent une valeur par défaut "
         "quand le champ est absent — à condition que cette valeur par défaut ait un sens métier."
     ),
     "field_removed": (
         "Retirer un champ ne provoque aucune erreur de décodage, mais la donnée disparaît en silence pour "
-        "ceux qui l'utilisent encore. Le numéro et le nom retirés doivent être déclarés « reserved »."
+        "ceux qui l’utilisent encore. Le numéro et le nom retirés doivent être déclarés « reserved »."
     ),
     "messages_removed": (
-        "Ces messages n'étaient utilisés que par des RPC supprimées : leur disparition n'a pas d'effet "
-        "propre sur le fil, elle n'est que la conséquence de ces suppressions."
+        "Ces messages n’étaient utilisés que par des RPC supprimées : leur disparition n’a pas d’effet "
+        "propre sur le fil, elle n’est que la conséquence de ces suppressions."
     ),
     "messages_added": (
-        "Un nouveau type de message n'affecte aucun échange existant tant qu'aucun champ ni aucune RPC "
-        "déjà publiés ne s'en servent."
+        "Un nouveau type de message n’affecte aucun échange existant tant qu’aucun champ ni aucune RPC "
+        "déjà publiés ne s’en servent."
     ),
 }
 
@@ -330,7 +330,7 @@ def _service_changes(old: ServiceDescriptor | None, new: ServiceDescriptor | Non
                     wire_effect=(
                         f"Le chemin {_rpc_path(method)} existe toujours, mais le serveur v2 y attend "
                         f"{successor.input_type.name} et y répond {successor.output_type.name} : chaque côté "
-                        "décode avec son propre contrat des octets écrits avec l'autre."
+                        "décode avec son propre contrat des octets écrits avec l’autre."
                     ),
                 )
             continue
@@ -347,7 +347,7 @@ def _service_changes(old: ServiceDescriptor | None, new: ServiceDescriptor | Non
             element=f"service {old.name} · {method.name}",
             v1=_rpc_declaration(method), v2=_rpc_declaration(twin),
             wire_effect=(
-                f"Le nom de la méthode voyage dans le chemin HTTP/2 de l'appel (:path = {_rpc_path(method)}). "
+                f"Le nom de la méthode voyage dans le chemin HTTP/2 de l’appel (:path = {_rpc_path(method)}). "
                 "Le serveur v2 ne publie plus ce chemin : il répond UNIMPLEMENTED sans rien exécuter."
             ),
         )
@@ -361,7 +361,7 @@ def _service_changes(old: ServiceDescriptor | None, new: ServiceDescriptor | Non
             v1="\n".join(_rpc_declaration(method) for method in removed), v2=None,
             wire_effect=(
                 "Le serveur v2 ne publie plus ces chemins : tout appel reçoit le statut UNIMPLEMENTED, "
-                "sans qu'aucune procédure ne soit exécutée."
+                "sans qu’aucune procédure ne soit exécutée."
             ),
         )
     if fresh:
@@ -372,7 +372,7 @@ def _service_changes(old: ServiceDescriptor | None, new: ServiceDescriptor | Non
             title=f"{_count(len(fresh), 'RPC ajoutée', 'RPC ajoutées')} : {names}",
             element=f"service {new.name}",
             v1=None, v2="\n".join(_rpc_declaration(method) for method in fresh),
-            wire_effect="Aucun client v1 n'appelle ces chemins : rien ne change pour eux.",
+            wire_effect="Aucun client v1 n’appelle ces chemins : rien ne change pour eux.",
         )
 
 
@@ -439,7 +439,7 @@ def _mismatch_effect(flow: _Flow, written: FieldDescriptor, read: FieldDescripto
     if any({_scalar(written), _scalar(read)} <= family for family in _INTERCHANGEABLE):
         return (
             f"Même tag {_tag(read)} et même encodage : {_type_name(written)} et {_type_name(read)} sont "
-            "interchangeables sur le fil. La valeur est relue correctement tant qu'elle tient dans le type "
+            "interchangeables sur le fil. La valeur est relue correctement tant qu’elle tient dans le type "
             "le plus étroit.",
             True,
         )
@@ -470,7 +470,7 @@ def _field_changes(old: Descriptor, new: Descriptor, flow: _Flow) -> Iterator[di
                     element=element, v1=_declaration(before), v2=_declaration(after),
                     wire_effect=(
                         f"Même tag {_tag(after)}, même type : les octets échangés sont identiques. Seul le nom "
-                        "de l'accesseur change dans le code généré."
+                        "de l’accesseur change dans le code généré."
                     ),
                 )
                 continue
@@ -497,11 +497,11 @@ def _field_changes(old: Descriptor, new: Descriptor, flow: _Flow) -> Iterator[di
                     title=f"Champ ajouté : {_typed(after)} au n°{number}",
                     element=element, v1=None, v2=_declaration(after),
                     wire_effect=(
-                        f"Un client v1 n'envoie pas ce champ : le serveur v2 lit sa valeur par défaut "
+                        f"Un client v1 n’envoie pas ce champ : le serveur v2 lit sa valeur par défaut "
                         f"({_default(after)})."
                         if flow.client_writes else
                         f"Le serveur v2 écrit le tag {_tag(after)} (n°{number}, {_wire_name(after)}) ; un client "
-                        "v1 ne connaît pas ce numéro : le type de fil lui indique combien d'octets sauter, et "
+                        "v1 ne connaît pas ce numéro : le type de fil lui indique combien d’octets sauter, et "
                         "il ignore le champ."
                     ),
                 )
@@ -514,7 +514,7 @@ def _field_changes(old: Descriptor, new: Descriptor, flow: _Flow) -> Iterator[di
                 v1=_declaration(origin), v2=_declaration(after),
                 wire_effect=(
                     f"Un client v1 écrit « {after.name} » au n°{origin.number} ; le serveur v2 le cherche au "
-                    f"n°{number} (tag {_tag(after)}), ne l'y trouve pas et retient la valeur par défaut "
+                    f"n°{number} (tag {_tag(after)}), ne l’y trouve pas et retient la valeur par défaut "
                     f"({_default(after)})."
                     if flow.client_writes else
                     f"Le serveur v2 écrit « {after.name} » au n°{number} (tag {_tag(after)}) ; un client v1 ne "
@@ -531,7 +531,7 @@ def _field_changes(old: Descriptor, new: Descriptor, flow: _Flow) -> Iterator[di
                     f"Un client v1 envoie encore le tag {_tag(before)} (n°{number}) ; le serveur v2 le range "
                     "parmi les champs inconnus : la donnée est perdue sans erreur."
                     if flow.client_writes else
-                    f"Le serveur v2 n'écrit plus ce champ ; un client v1 lit sa valeur par défaut "
+                    f"Le serveur v2 n’écrit plus ce champ ; un client v1 lit sa valeur par défaut "
                     f"({_default(before)}) sans pouvoir distinguer « absent » de « {_default(before)} »."
                 ),
             )
@@ -574,9 +574,9 @@ def diff_contracts(old: FileDescriptor, new: FileDescriptor) -> list[dict[str, A
             changes.extend(_field_changes(message, successor, _Flow(client_writes=name in written)))
     for rule, source, other, title, effect in (
         ("messages_removed", old, new, ("Message supprimé", "messages supprimés"),
-         "Aucun : le contrat v2 n'a plus de RPC qui échange ces messages."),
+         "Aucun : le contrat v2 n’a plus de RPC qui échange ces messages."),
         ("messages_added", new, old, ("Message ajouté", "messages ajoutés"),
-         "Aucun : les clients v1 n'appellent aucune RPC qui échange ces messages."),
+         "Aucun : les clients v1 n’appellent aucune RPC qui échange ces messages."),
     ):
         names = [name for name in source.message_types_by_name if name not in other.message_types_by_name]
         if names:
@@ -611,11 +611,11 @@ _JSONRPC_CHANGES: tuple[dict[str, Any], ...] = (
         "v2": "get_product(product_id)",
         "wire_effect": (
             'Le nom voyage en clair dans le message ({"method":"get_product_details"}). Le dispatcher v2 ne '
-            "trouve aucune procédure sous ce nom et répond par l'erreur -32601 (Method not found)."
+            "trouve aucune procédure sous ce nom et répond par l’erreur -32601 (Method not found)."
         ),
         "explanation": (
-            "Sans IDL, rien ne signale le renommage avant l'exécution : ni compilation, ni stub à régénérer. "
-            "Le rejet est au moins franc — l'appelant sait que rien n'a été fait."
+            "Sans IDL, rien ne signale le renommage avant l’exécution : ni compilation, ni stub à régénérer. "
+            "Le rejet est au moins franc — l’appelant sait que rien n’a été fait."
         ),
     },
     {
@@ -630,11 +630,11 @@ _JSONRPC_CHANGES: tuple[dict[str, Any], ...] = (
         "v1": 'update_stock(product_id, delta, idempotency_key="")',
         "v2": 'update_stock(product_id, delta, warehouse, idempotency_key="")',
         "wire_effect": (
-            "Les paramètres nommés d'un client v1 ne se lient plus à la signature v2 : le squelette répond "
+            "Les paramètres nommés d’un client v1 ne se lient plus à la signature v2 : le squelette répond "
             "-32602 (Invalid params) sans appeler la procédure."
         ),
         "explanation": (
-            "Ajouter un paramètre obligatoire casse tous les appelants existants. Doté d'une valeur par "
+            "Ajouter un paramètre obligatoire casse tous les appelants existants. Doté d’une valeur par "
             "défaut, le même paramètre aurait été une évolution compatible."
         ),
     },
@@ -650,12 +650,12 @@ _JSONRPC_CHANGES: tuple[dict[str, Any], ...] = (
         "v1": '{"id": …, "name": …, "price": 129.9, "stock": 84, …}',
         "v2": '{"id": …, "name": …, "price_cents": 12990, "quantity": 84, …}',
         "wire_effect": (
-            "L'appel réussit et le JSON est parfaitement valide : le middleware n'a rien à redire. C'est le "
-            "code applicatif du client qui échoue ensuite, en lisant une clé qui n'existe plus (KeyError)."
+            "L’appel réussit et le JSON est parfaitement valide : le middleware n’a rien à redire. C’est le "
+            "code applicatif du client qui échoue ensuite, en lisant une clé qui n’existe plus (KeyError)."
         ),
         "explanation": (
             "JSON-RPC ne décrit pas la forme des résultats : ni le stub ni le squelette ne peuvent vérifier "
-            "ce contrat-là. La rupture se manifeste loin de l'appel, par un plantage du client — ou pire, "
+            "ce contrat-là. La rupture se manifeste loin de l’appel, par un plantage du client — ou pire, "
             "par une valeur par défaut silencieuse si son code utilise .get()."
         ),
     },
@@ -671,11 +671,11 @@ _JSONRPC_CHANGES: tuple[dict[str, Any], ...] = (
         "v1": '{"n", "result", "digits", "compute_us"}',
         "v2": '{"n", "result", "digits", "compute_us", "algorithm"}',
         "wire_effect": (
-            "La clé supplémentaire voyage dans le JSON ; un client v1, qui ne lit que les clés qu'il "
+            "La clé supplémentaire voyage dans le JSON ; un client v1, qui ne lit que les clés qu’il "
             "connaît, ne la remarque pas."
         ),
         "explanation": (
-            "Comme pour Protobuf, ajouter est compatible tant que le lecteur tolère l'inconnu. Un client qui "
+            "Comme pour Protobuf, ajouter est compatible tant que le lecteur tolère l’inconnu. Un client qui "
             "validerait strictement la forme du résultat casserait ici."
         ),
     },
@@ -686,29 +686,29 @@ GOLDEN_RULES: tuple[dict[str, Any], ...] = (
         "title": "Ne jamais réutiliser un numéro de champ",
         "good": False,
         "text": (
-            "Le numéro EST l'identité du champ sur le fil. Le réattribuer fait lire à un ancien client une "
-            "donnée qu'il prend pour une autre : ici « reserved » lu comme un stock, ou un « delta » ignoré."
+            "Le numéro EST l’identité du champ sur le fil. Le réattribuer fait lire à un ancien client une "
+            "donnée qu’il prend pour une autre : ici « reserved » lu comme un stock, ou un « delta » ignoré."
         ),
     },
     {
-        "title": "Ne jamais changer le type d'un champ existant",
+        "title": "Ne jamais changer le type d’un champ existant",
         "good": False,
         "text": (
-            "Un autre type, c'est le plus souvent un autre type de fil : l'ancien lecteur ignore le champ et "
-            "retombe sur la valeur par défaut (un prix à 0.0). À type de fil égal, c'est pire : la valeur est "
+            "Un autre type, c’est le plus souvent un autre type de fil : l’ancien lecteur ignore le champ et "
+            "retombe sur la valeur par défaut (un prix à 0.0). À type de fil égal, c’est pire : la valeur est "
             "décodée sans erreur, et fausse."
         ),
     },
     {
-        "title": "Ne jamais renommer ni supprimer une RPC d'un seul coup",
+        "title": "Ne jamais renommer ni supprimer une RPC d’un seul coup",
         "good": False,
         "text": (
-            "Le nom d'une RPC est son adresse. On ajoute la nouvelle, on déprécie l'ancienne "
-            "(option deprecated = true), on la retire quand plus aucun client ne l'appelle."
+            "Le nom d’une RPC est son adresse. On ajoute la nouvelle, on déprécie l’ancienne "
+            "(option deprecated = true), on la retire quand plus aucun client ne l’appelle."
         ),
     },
     {
-        "title": "Ne jamais exiger ce que les anciens clients n'envoient pas",
+        "title": "Ne jamais exiger ce que les anciens clients n’envoient pas",
         "good": False,
         "text": (
             "Un champ ou un paramètre devenu obligatoire rejette tous les appelants existants "
@@ -727,12 +727,12 @@ GOLDEN_RULES: tuple[dict[str, Any], ...] = (
         "title": "Réserver les numéros et les noms retirés",
         "good": True,
         "text": (
-            "« reserved 5; reserved \"stock\"; » : protoc refuse alors toute réutilisation. C'est le "
+            "« reserved 5; reserved \"stock\"; » : protoc refuse alors toute réutilisation. C’est le "
             "garde-fou qui manquait au contrat v2."
         ),
     },
     {
-        "title": "Publier une rupture comme une nouvelle version, servie à côté de l'ancienne",
+        "title": "Publier une rupture comme une nouvelle version, servie à côté de l’ancienne",
         "good": True,
         "text": (
             "Un nouveau package (rpcexplorer.v2) donne de nouveaux chemins : v1 et v2 cohabitent sur le même "
@@ -751,8 +751,8 @@ GOLDEN_RULES: tuple[dict[str, Any], ...] = (
         "title": "Vérifier la compatibilité avant de déployer",
         "good": True,
         "text": (
-            "Avec un IDL, un outil compare les deux contrats à la revue de code (c'est ce que fait "
-            "diff_contracts ici, ou « buf breaking » dans l'industrie). Sans IDL — JSON-RPC, REST —, seuls "
+            "Avec un IDL, un outil compare les deux contrats à la revue de code (c’est ce que fait "
+            "diff_contracts ici, ou « buf breaking » dans l’industrie). Sans IDL — JSON-RPC, REST —, seuls "
             "des tests de contrat le peuvent."
         ),
     },
@@ -1000,8 +1000,8 @@ def _euros(amount: float) -> str:
 def _explain_renamed_rpc(evidence: _Evidence) -> str:
     return (
         f"Le client v1 appelle {evidence.wire['path']}. Le contrat v2 a renommé cette RPC en GetProduct : le "
-        f"serveur ne publie plus l'ancien chemin et répond {evidence.status} avant même de décoder la requête. "
-        "Rien n'est exécuté et le client le sait — c'est la rupture la moins dangereuse : une panne franche, "
+        f"serveur ne publie plus l’ancien chemin et répond {evidence.status} avant même de décoder la requête. "
+        "Rien n’est exécuté et le client le sait — c’est la rupture la moins dangereuse : une panne franche, "
         "visible dès le premier appel."
     )
 
@@ -1017,9 +1017,9 @@ def _explain_field_reuse_silent(evidence: _Evidence) -> str:
         f"0x{written['value']['hex']} (ZigZag de {delta}). Pour le contrat v2, le n°{written['field']} est la "
         "chaîne « warehouse » (LEN) : le type de fil ne correspond pas, le décodeur range le champ parmi les "
         "inconnus, et « delta » — déplacé au n°4 — garde sa valeur par défaut, 0. Le serveur applique donc une "
-        f"variation de 0 et répond OK : le stock de {reference} est resté à {actual} alors qu'un serveur v1 "
-        f"l'aurait fait passer de {before} à {wanted}. Aucune erreur, d'aucun côté : l'écart de "
-        f"{abs(actual - wanted)} unités ne se verra qu'au prochain inventaire."
+        f"variation de 0 et répond OK : le stock de {reference} est resté à {actual} alors qu’un serveur v1 "
+        f"l’aurait fait passer de {before} à {wanted}. Aucune erreur, d’aucun côté : l’écart de "
+        f"{abs(actual - wanted)} unités ne se verra qu’au prochain inventaire."
     )
 
 
@@ -1028,7 +1028,7 @@ def _explain_field_reuse_strict(evidence: _Evidence) -> str:
     return (
         "Mêmes octets que dans le scénario précédent, mais le serveur v2 valide maintenant ses entrées : "
         "« warehouse » (n°2) est vide, puisque le client v1 y a écrit un entier que le décodeur a ignoré. Le "
-        f"serveur répond {evidence.status} ({evidence.error.message}) et n'applique rien : le stock de "
+        f"serveur répond {evidence.status} ({evidence.error.message}) et n’applique rien : le stock de "
         f"{reference} reste à {evidence.truth[reference]['stock']}, et le client en est informé. Une validation "
         "applicative transforme la corruption silencieuse en rejet explicite."
     )
@@ -1040,8 +1040,8 @@ def _explain_added_field(evidence: _Evidence) -> str:
     value = f" (« {response['as_v2']['message']['algorithm']} »)" if response else ""
     return (
         f"Le serveur v2 ajoute « algorithm » au n°5 de sa réponse{value}. Le client v1 ne connaît pas ce "
-        "numéro : le type de fil (LEN) lui indique combien d'octets sauter, et il lit "
-        f"{view['n']}! = {view['result']} ({view['digits']} chiffres), exactement ce qu'un serveur v1 aurait "
+        "numéro : le type de fil (LEN) lui indique combien d’octets sauter, et il lit "
+        f"{view['n']}! = {view['result']} ({view['digits']} chiffres), exactement ce qu’un serveur v1 aurait "
         "renvoyé. Un nouveau champ sous un nouveau numéro : la seule évolution qui ne casse personne."
     )
 
@@ -1055,11 +1055,11 @@ def _explain_type_change_read(evidence: _Evidence) -> str:
         for key, value in entry.items()
     )
     return (
-        f"L'appel réussit (statut OK) et renvoie {len(evidence.view)} produits… faux. Pour {reference}, le "
+        f"L’appel réussit (statut OK) et renvoie {len(evidence.view)} produits… faux. Pour {reference}, le "
         f"client v1 lit un prix de {_euros(seen['price'])} et un stock de {seen['stock']} ; le serveur détient "
         f"{_euros(real['price'])} et {real['stock']} unités. Le prix (n°4) est passé de double à int64 : type "
         "de fil différent, champ ignoré, valeur par défaut 0.0. Le n°5 porte désormais « reserved », que le "
-        "client prend pour le stock ; le vrai stock voyage au n°15, qu'il ne connaît pas. "
+        "client prend pour le stock ; le vrai stock voyage au n°15, qu’il ne connaît pas. "
         f"{wrong} valeurs sur {2 * len(evidence.view)} sont fausses, et rien ne le signale."
     )
 
@@ -1071,26 +1071,26 @@ def _explain_jsonrpc_required_param(evidence: _Evidence) -> str:
         f"Le client v1 envoie update_stock avec les paramètres nommés {', '.join(request)}. La signature v2 "
         "exige en plus « warehouse » : la liaison des arguments échoue dans le squelette, qui répond "
         f"{evidence.status} ({evidence.error.message}) sans appeler la procédure. Le stock de {reference} "
-        f"reste à {evidence.truth[reference]['stock']}. Faute d'IDL, rien n'annonçait cette rupture avant "
-        "l'exécution."
+        f"reste à {evidence.truth[reference]['stock']}. Faute d’IDL, rien n’annonçait cette rupture avant "
+        "l’exécution."
     )
 
 
 def _explain_jsonrpc_renamed_method(evidence: _Evidence) -> str:
     return (
-        f"La requête porte \"method\": \"{evidence.scenario.method}\" ; le serveur v2 n'expose plus que "
+        f"La requête porte \"method\": \"{evidence.scenario.method}\" ; le serveur v2 n’expose plus que "
         "get_product. Le dispatcher ne trouve aucune procédure sous ce nom et répond "
-        f"{evidence.status} (Method not found) : un rejet franc, l'équivalent du statut UNIMPLEMENTED de gRPC."
+        f"{evidence.status} (Method not found) : un rejet franc, l’équivalent du statut UNIMPLEMENTED de gRPC."
     )
 
 
 def _explain_jsonrpc_renamed_keys(evidence: _Evidence) -> str:
     crash = evidence.crash
     return (
-        f"L'appel list_products RÉUSSIT : le serveur v2 renvoie {len(evidence.result['products'])} produits "
+        f"L’appel list_products RÉUSSIT : le serveur v2 renvoie {len(evidence.result['products'])} produits "
         "dans un JSON parfaitement valide. Mais leurs clés ont changé (price → price_cents, stock → quantity), "
-        f"et le code du client qui lit product[{crash.args[0]!r}] lève {type(crash).__name__}. Ce n'est pas "
-        "une erreur RPC : elle surgit dans le code applicatif, après l'appel, là où personne ne soupçonne un "
+        f"et le code du client qui lit product[{crash.args[0]!r}] lève {type(crash).__name__}. Ce n’est pas "
+        "une erreur RPC : elle surgit dans le code applicatif, après l’appel, là où personne ne soupçonne un "
         "problème de contrat."
     )
 
@@ -1100,7 +1100,7 @@ def _explain_jsonrpc_added_key(evidence: _Evidence) -> str:
     return (
         f"Le résultat v2 porte une clé de plus, « algorithm » (« {evidence.result.get('algorithm')} »). Le "
         f"client v1 ne lit que n, result et digits : il obtient {view['n']}! = {view['result']}, comme avant. "
-        "Un lecteur tolérant, qui ignore les clés inconnues, rend l'ajout compatible — exactement comme les "
+        "Un lecteur tolérant, qui ignore les clés inconnues, rend l’ajout compatible — exactement comme les "
         "champs inconnus de Protobuf."
     )
 
@@ -1181,7 +1181,7 @@ _SCENARIOS: tuple[_Scenario, ...] = (
         protocol="custom",
         change_id="jsonrpc_param_required",
         expected_outcome="rejected",
-        summary="update_stock exige désormais « warehouse » : les arguments d'un client v1 ne se lient plus.",
+        summary="update_stock exige désormais « warehouse » : les arguments d’un client v1 ne se lient plus.",
         method="update_stock",
         params={"product_id": PRODUCT_ID, "delta": STOCK_DELTA},
         read=_read_stock_update,
@@ -1193,7 +1193,7 @@ _SCENARIOS: tuple[_Scenario, ...] = (
         protocol="custom",
         change_id="jsonrpc_method_renamed",
         expected_outcome="rejected",
-        summary="get_product_details s'appelle maintenant get_product : l'ancien nom n'est plus enregistré.",
+        summary="get_product_details s’appelle maintenant get_product : l’ancien nom n’est plus enregistré.",
         method="get_product_details",
         params={"product_id": PRODUCT_ID},
         read=_read_product,
@@ -1740,12 +1740,12 @@ def main(argv: list[str] | None = None) -> int:
 
     _section(
         console, 2, "Un client v1 face aux serveurs v2",
-        "Pour chaque appel : ce qu'un serveur v1 aurait fait, ce qui s'est réellement passé, et le verdict.",
+        "Pour chaque appel : ce qu’un serveur v1 aurait fait, ce qui s’est réellement passé, et le verdict.",
     )
     for result in results:
         _render_scenario(console, result)
 
-    _section(console, 3, "Règles d'or", "Faire évoluer un contrat sans casser les clients déjà déployés.")
+    _section(console, 3, "Règles d’or", "Faire évoluer un contrat sans casser les clients déjà déployés.")
     _render_rules(console, overview["rules"])
 
     tally = Text("Bilan : ", style="bold")

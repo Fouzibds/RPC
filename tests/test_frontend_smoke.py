@@ -21,7 +21,7 @@ from typing import Any, Callable, ContextManager, Iterator
 
 import pytest
 
-pytest.importorskip("playwright.sync_api", reason="Playwright n'est pas installé : tests du navigateur ignorés.")
+pytest.importorskip("playwright.sync_api", reason="Playwright n’est pas installé : tests du navigateur ignorés.")
 
 # Imports placés après ``importorskip`` : sans Playwright, aucun d'eux ne doit être tenté.
 from playwright.sync_api import Browser, Locator, Page, expect, sync_playwright
@@ -110,7 +110,7 @@ def dashboard(browser: Browser, reports_dir: Path) -> Iterator[LiveDashboard]:
     with LabRuntime.ephemeral(bus=EventBus()) as runtime, LiveDashboard(runtime) as live:
         yield live
         live.wait_until_idle()      # ne pas arrêter les serveurs sous un banc d'essai laissé en route par un test en échec
-    assert not lingering_threads(threads_before), "des threads du laboratoire ou du dashboard ont survécu à l'arrêt"
+    assert not lingering_threads(threads_before), "des threads du laboratoire ou du dashboard ont survécu à l’arrêt"
 
 
 @pytest.fixture(autouse=True)

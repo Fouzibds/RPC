@@ -49,7 +49,7 @@ METHODS: tuple[MethodSpec, ...] = (
     MethodSpec(
         name="get_product_details",
         title="Consulter une fiche produit",
-        description="Lecture seule : renvoie la fiche complète d'un produit (structure imbriquée).",
+        description="Lecture seule : renvoie la fiche complète d’un produit (structure imbriquée).",
         kind="unary",
         params=(ParamSpec("product_id", "product_id", "SKU-1001", "Référence du produit"),),
         idempotent=True,
@@ -59,12 +59,12 @@ METHODS: tuple[MethodSpec, ...] = (
     MethodSpec(
         name="update_stock",
         title="Mettre à jour un stock",
-        description="Écriture NON idempotente : ajoute « delta » au stock. Rejouer l'appel applique l'effet deux fois.",
+        description="Écriture NON idempotente : ajoute « delta » au stock. Rejouer l’appel applique l’effet deux fois.",
         kind="unary",
         params=(
             ParamSpec("product_id", "product_id", "SKU-1001", "Référence du produit"),
             ParamSpec("delta", "int", -1, "Variation de stock (négative = sortie)", -1_000_000, 1_000_000),
-            ParamSpec("idempotency_key", "str", "", "Clé d'idempotence (facultative) : rend le rejeu sans effet"),
+            ParamSpec("idempotency_key", "str", "", "Clé d’idempotence (facultative) : rend le rejeu sans effet"),
         ),
         idempotent=False,
         grpc_method="UpdateStock",
@@ -73,7 +73,7 @@ METHODS: tuple[MethodSpec, ...] = (
     MethodSpec(
         name="list_products",
         title="Lister le catalogue",
-        description="Renvoie « limit » produits : idéal pour observer l'effet de la taille du payload.",
+        description="Renvoie « limit » produits : idéal pour observer l’effet de la taille du payload.",
         kind="unary",
         params=(
             ParamSpec("limit", "int", 20, "Nombre de produits à renvoyer", 0, 5000),
@@ -85,11 +85,11 @@ METHODS: tuple[MethodSpec, ...] = (
     ),
     MethodSpec(
         name="stream_analytics",
-        title="Flux d'indicateurs (streaming serveur)",
-        description="Le serveur pousse un instantané d'inventaire à intervalle régulier sur une seule requête.",
+        title="Flux d’indicateurs (streaming serveur)",
+        description="Le serveur pousse un instantané d’inventaire à intervalle régulier sur une seule requête.",
         kind="server_stream",
         params=(
-            ParamSpec("samples", "int", 10, "Nombre d'instantanés à recevoir", 1, 500),
+            ParamSpec("samples", "int", 10, "Nombre d’instantanés à recevoir", 1, 500),
             ParamSpec("interval_ms", "int", 200, "Intervalle entre deux instantanés (ms)", 0, 5000),
         ),
         idempotent=True,
@@ -121,7 +121,7 @@ METHODS: tuple[MethodSpec, ...] = (
     MethodSpec(
         name="check_stock",
         title="Vérification en direct (streaming bidirectionnel)",
-        description="Le client envoie des références au fil de l'eau ; le serveur répond pour chacune, sur le même flux.",
+        description="Le client envoie des références au fil de l’eau ; le serveur répond pour chacune, sur le même flux.",
         kind="bidi_stream",
         params=(
             ParamSpec(

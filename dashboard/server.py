@@ -141,7 +141,7 @@ _NOT_BUILT_PAGE = f"""<!doctype html>
 </head>
 <body>
 <main>
-  <h1>L'interface web n'est pas encore construite</h1>
+  <h1>L’interface web n’est pas encore construite</h1>
   <p>Le laboratoire {APP_NAME} est bien démarré et son API répond, mais le fichier
      <code>dashboard/static/index.html</code> est introuvable.</p>
   <p>En attendant : <a href="/api/status">/api/status</a> · <a href="/api/catalog">/api/catalog</a> ·
@@ -223,7 +223,7 @@ class _Lab:
 
     def require_started(self) -> None:
         if not self.runtime.started:
-            raise ApiError(503, UNAVAILABLE, "Le laboratoire n'est pas démarré : ses serveurs ne répondent pas.")
+            raise ApiError(503, UNAVAILABLE, "Le laboratoire n’est pas démarré : ses serveurs ne répondent pas.")
 
     def reset(self) -> None:
         self.runtime.reset()
@@ -672,7 +672,7 @@ def _listen(host: str, port: int) -> socket.socket:
         raise RuntimeError(
             f"Le dashboard ne peut pas écouter sur {host}:{port} : le port est déjà utilisé (peut-être par un "
             "autre dashboard). Choisissez-en un autre avec --port, ou décalez tous les ports du laboratoire "
-            "avec la variable d'environnement RPCX_PORT_OFFSET."
+            "avec la variable d’environnement RPCX_PORT_OFFSET."
         ) from exc
     return listener
 
@@ -776,9 +776,9 @@ def main(argv: list[str] | None = None) -> int:
         prog="python -m dashboard.server",
         description="Démarre le laboratoire et sert son dashboard web.",
     )
-    parser.add_argument("--host", default=HOST, help="adresse d'écoute du dashboard")
+    parser.add_argument("--host", default=HOST, help="adresse d’écoute du dashboard")
     parser.add_argument(
-        "--port", type=int, default=None, help="port du dashboard (par défaut : celui du plan d'adressage)"
+        "--port", type=int, default=None, help="port du dashboard (par défaut : celui du plan d’adressage)"
     )
     parser.add_argument("--no-browser", action="store_true", help="ne pas ouvrir le navigateur")
     args = parser.parse_args(argv)

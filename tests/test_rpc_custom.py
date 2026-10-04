@@ -1011,7 +1011,7 @@ def test_stop_is_idempotent_and_releases_the_port(bus: EventBus) -> None:
 def test_start_is_idempotent_and_reports_a_busy_port(server: RpcServerSkeleton, bus: EventBus) -> None:
     port = server.port
     assert server.start() is server and server.port == port
-    with pytest.raises(OSError, match="Impossible d'écouter"):
+    with pytest.raises(OSError, match="Impossible d’écouter"):
         make_server(bus, port).start()
 
 

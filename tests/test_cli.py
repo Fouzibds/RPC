@@ -143,13 +143,13 @@ def test_help_is_french_and_utf8_whatever_the_console_encoding() -> None:
     ("arguments", "message"),
     [
         (("--call", "no_such_method", "1"), "Procédure inconnue"),
-        (("--call", "calculate_factorial", "1", "2"), "Trop d'arguments"),
-        (("--quick",), "--quick ne s'utilise qu'avec --benchmark"),
+        (("--call", "calculate_factorial", "1", "2"), "Trop d’arguments"),
+        (("--quick",), "--quick ne s’utilise qu’avec --benchmark"),
         (("--benchmark", "--contract"), "ne peuvent pas être utilisées ensemble"),
         (("--benchmark", "--iterations", "0"), "un entier compris entre 1 et"),
         (("--simulate-failures", "--protocol", "local"), "un réseau à dérégler"),
         (("--simulate-failures", "--scenario", "nope"), "Scénario inconnu : « nope »"),
-        (("--call", "calculate_factorial", "--protocol", "soap"), "n'accepte pas 'soap'"),
+        (("--call", "calculate_factorial", "--protocol", "soap"), "n’accepte pas 'soap'"),
         (("--frobnicate",), "option ou argument inconnu"),
     ],
 )
@@ -196,7 +196,7 @@ def test_call_with_inspect_shows_pipeline_and_raw_bytes() -> None:
     assert_clean(result)
     out = result.stdout
     assert '"new_stock": 81' in out
-    for stage in ("Appel du stub", "Marshalling", "Dispatch", "Exécution", "Retour à l'appelant"):
+    for stage in ("Appel du stub", "Marshalling", "Dispatch", "Exécution", "Retour à l’appelant"):
         assert stage in out
     assert "Requête — gRPC / Protobuf · 17 octets" in out
     assert "000000  00 00 00 00 0c 0a 08 53  4b 55 2d 31 30 30 31 10" in out     # préfixe gRPC puis « SKU-1001 »
@@ -242,7 +242,7 @@ def test_busy_port_is_explained_and_exits_1() -> None:
         squatter.listen()
         result = spawn_cli("--call", "calculate_factorial", "5")
     assert_clean(result, expected_code=1)
-    assert "Le laboratoire n'a pas pu démarrer" in result.stdout
+    assert "Le laboratoire n’a pas pu démarrer" in result.stdout
     assert str(Ports().custom + PORT_OFFSET) in result.stdout
     assert "RPCX_PORT_OFFSET" in result.stdout
 
@@ -286,7 +286,7 @@ def test_simulate_failures_plays_one_scenario_with_timeline_and_verdict() -> Non
         assert word in out
     assert "Tentative n° 1 : échec (UNAVAILABLE)" in out
     assert "Verdict" in out and "À retenir" in out
-    assert "Exécutions sans clé d'idempotence" in out
+    assert "Exécutions sans clé d’idempotence" in out
     assert "Le piège de la boucle innocente" not in out      # un seul scénario demandé
 
 
@@ -299,10 +299,10 @@ def test_contract_shows_diff_changes_and_scenarios() -> None:
     assert "+   rpc GetProduct (ProductRequest) returns (Product);" in out
     for tag in ("BREAKING", "COMPATIBLE", "REJET", "PLANTAGE", "CORRUPTION SILENCIEUSE"):
         assert tag in out
-    assert "Attendu — ce qu'un serveur v1 aurait fait" in out and "Observé — face au serveur v2" in out
+    assert "Attendu — ce qu’un serveur v1 aurait fait" in out and "Observé — face au serveur v2" in out
     assert "UNIMPLEMENTED" in out and "-32602" in out
     assert "INATTENDUE" not in out
-    assert "Règles d'or" in out and "Bilan" in out
+    assert "Règles d’or" in out and "Bilan" in out
 
 
 def test_demo_runs_without_pause_through_the_three_middlewares() -> None:
@@ -429,7 +429,7 @@ def test_text_parameters_keep_their_raw_text() -> None:
     ("method", "arguments", "message"),
     [
         ("teleport", [], "Procédure inconnue"),
-        ("calculate_factorial", ["5", "6"], "Trop d'arguments"),
+        ("calculate_factorial", ["5", "6"], "Trop d’arguments"),
         ("update_stock", ["SKU-1001", "product_id=SKU-1002"], "donné deux fois"),
     ],
 )
@@ -558,11 +558,11 @@ def test_wire_report_fits_the_terminal_width(lab: LabRuntime, width: int) -> Non
     screen = Screen(width)
     wire_report(screen.console, outcome.trace)
     assert max(len(line) for line in screen.text.splitlines()) <= width
-    for expected in ("Retour à l'appelant", "Requête — gRPC / Protobuf · 15 octets", "Valeur décodée",
+    for expected in ("Retour à l’appelant", "Requête — gRPC / Protobuf · 15 octets", "Valeur décodée",
                      '"SKU-1001"', "sous-message · 36 octets", "width_cm"):
         assert expected in screen.text
     # Dans un terminal étroit, les colonnes de confort disparaissent plutôt que de tronquer les nombres.
-    assert ("Part de l'appel" in screen.text) == (width >= 100)
+    assert ("Part de l’appel" in screen.text) == (width >= 100)
 
 
 def test_run_parallel_compares_sequential_and_simultaneous_calls(lab: LabRuntime) -> None:
@@ -681,7 +681,7 @@ def test_run_dashboard_reports_a_busy_port(lab: LabRuntime, monkeypatch: pytest.
     fake_dashboard(monkeypatch, refuse)
     screen = Screen()
     assert cli_runner.run_dashboard(lab, console=screen.console) == cli_runner.EXIT_FAILURE
-    assert "Le dashboard n'a pas pu démarrer" in screen.text and "déjà utilisé" in screen.text
+    assert "Le dashboard n’a pas pu démarrer" in screen.text and "déjà utilisé" in screen.text
 
 
 def test_run_transparency_shows_the_four_snippets_with_line_counts(lab: LabRuntime) -> None:

@@ -65,7 +65,7 @@ STAGE_INFO: dict[str, dict[str, str]] = {
     "client.marshal": {
         "label": "Marshalling",
         "role": "Stub client",
-        "text": "Le stub sérialise le nom de la procédure et ses arguments en une suite d'octets.",
+        "text": "Le stub sérialise le nom de la procédure et ses arguments en une suite d’octets.",
     },
     "client.send": {
         "label": "Envoi",
@@ -90,12 +90,12 @@ STAGE_INFO: dict[str, dict[str, str]] = {
     "server.execute": {
         "label": "Exécution",
         "role": "Procédure métier",
-        "text": "La procédure s'exécute réellement — sur le serveur, dans un autre espace mémoire.",
+        "text": "La procédure s’exécute réellement — sur le serveur, dans un autre espace mémoire.",
     },
     "server.marshal": {
         "label": "Marshalling du résultat",
         "role": "Squelette serveur",
-        "text": "Le résultat (ou l'erreur) est sérialisé à son tour.",
+        "text": "Le résultat (ou l’erreur) est sérialisé à son tour.",
     },
     "server.send": {
         "label": "Envoi de la réponse",
@@ -105,7 +105,7 @@ STAGE_INFO: dict[str, dict[str, str]] = {
     "client.receive": {
         "label": "Réception de la réponse",
         "role": "Transport",
-        "text": "Le stub lit la trame de réponse et la rattache à l'appel en attente via son identifiant.",
+        "text": "Le stub lit la trame de réponse et la rattache à l’appel en attente via son identifiant.",
     },
     "client.unmarshal": {
         "label": "Démarshalling du résultat",
@@ -113,14 +113,14 @@ STAGE_INFO: dict[str, dict[str, str]] = {
         "text": "Les octets redeviennent une valeur du langage (ou une exception).",
     },
     "client.return": {
-        "label": "Retour à l'appelant",
+        "label": "Retour à l’appelant",
         "role": "Stub client",
-        "text": "Le stub rend le résultat : pour l'appelant, tout s'est passé « comme en local ».",
+        "text": "Le stub rend le résultat : pour l’appelant, tout s’est passé « comme en local ».",
     },
     "client.error": {
         "label": "Erreur remontée",
         "role": "Stub client",
-        "text": "L'appel échoue : timeout, panne réseau ou erreur renvoyée par le serveur.",
+        "text": "L’appel échoue : timeout, panne réseau ou erreur renvoyée par le serveur.",
     },
 }
 

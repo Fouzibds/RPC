@@ -54,15 +54,15 @@ _STREAM_METHODS = ", ".join(spec.name for spec in METHODS if spec.kind != "unary
 
 # Comment chaque protocole mène plusieurs appels de front : la réponse n'est pas la même, et c'est instructif.
 _ASYNC_STRATEGIES: dict[str, str] = {
-    "local": f"Aucun réseau : jusqu'à {ASYNC_WORKERS} threads appellent directement la fonction, et le verrou "
-             "global de l'interpréteur Python ne laisse progresser qu'un calcul à la fois.",
-    "custom": "Multiplexage : toutes les requêtes partent d'un trait sur une seule connexion TCP, et chaque "
-              "réponse retrouve son appel grâce à l'identifiant JSON-RPC.",
-    "grpc": f"HTTP/2 : jusqu'à {ASYNC_WORKERS} appels simultanés, chacun sur son propre flux d'une même connexion.",
-    "rest": f"HTTP/1.1 ne multiplexe pas : jusqu'à {ASYNC_WORKERS} connexions ouvertes, une par appel en cours.",
+    "local": f"Aucun réseau : jusqu’à {ASYNC_WORKERS} threads appellent directement la fonction, et le verrou "
+             "global de l’interpréteur Python ne laisse progresser qu’un calcul à la fois.",
+    "custom": "Multiplexage : toutes les requêtes partent d’un trait sur une seule connexion TCP, et chaque "
+              "réponse retrouve son appel grâce à l’identifiant JSON-RPC.",
+    "grpc": f"HTTP/2 : jusqu’à {ASYNC_WORKERS} appels simultanés, chacun sur son propre flux d’une même connexion.",
+    "rest": f"HTTP/1.1 ne multiplexe pas : jusqu’à {ASYNC_WORKERS} connexions ouvertes, une par appel en cours.",
 }
 _ASYNC_RETRIES = (
-    f"Avec une politique de retries, chaque appel logique occupe un thread (jusqu'à {ASYNC_WORKERS} de front) "
+    f"Avec une politique de retries, chaque appel logique occupe un thread (jusqu’à {ASYNC_WORKERS} de front) "
     "le temps de ses tentatives."
 )
 
@@ -110,7 +110,7 @@ def checked_params(method: str, params: dict[str, Any]) -> MethodSpec:
     # Seules les deux listes des flux gRPC sont contrôlées : un flux ne se construit pas sur autre chose.
     updates, product_ids = params.get("updates"), params.get("product_ids")
     if "updates" in params and not (isinstance(updates, list) and all(isinstance(item, dict) for item in updates)):
-        raise malformed("« updates » doit être une liste d'objets {product_id, delta}.")
+        raise malformed("« updates » doit être une liste d’objets {product_id, delta}.")
     if "product_ids" in params and not isinstance(product_ids, list):
         raise malformed("« product_ids » doit être une liste de références.")
     return spec
@@ -169,7 +169,7 @@ class CallRequest:
                 f"({_STREAM_METHODS})."
             )
         if mode != "stream" and spec.kind in _RESULT_STREAMS:
-            raise malformed(f"« {method} » renvoie un flux d'éléments : utilisez le mode « stream ».")
+            raise malformed(f"« {method} » renvoie un flux d’éléments : utilisez le mode « stream ».")
         count = fields.integer("count", 1, 1, MAX_ASYNC_CALLS)
         timeout_ms = fields.number("timeout_ms", None, 1, MAX_TIMEOUT_MS)
         policy = fields.mapping("policy", None)
@@ -203,7 +203,7 @@ class InspectRequest:
         spec = checked_params(method, params)
         if spec.kind in _RESULT_STREAMS:
             raise malformed(
-                f"« {method} » renvoie un flux : l'inspection décompose un appel à réponse unique. Lancez le flux "
+                f"« {method} » renvoie un flux : l’inspection décompose un appel à réponse unique. Lancez le flux "
                 "en mode « stream » puis relisez sa trace (GET /api/traces/{call_id})."
             )
         # Par défaut : les protocoles distants qui exposent la procédure — ce sont eux qui ont un fil à montrer.
@@ -309,7 +309,7 @@ class CallService:
         with self._lock:
             if self._open_streams >= MAX_STREAMS:
                 raise ApiError(
-                    429, BUSY, f"Trop de flux en cours ({MAX_STREAMS}) : attendez la fin de l'un d'eux."
+                    429, BUSY, f"Trop de flux en cours ({MAX_STREAMS}) : attendez la fin de l’un d’eux."
                 )
             self._open_streams += 1
         stream_id = f"stream-{uuid.uuid4().hex[:8]}"

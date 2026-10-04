@@ -58,13 +58,13 @@ _MODE_FLAGS: dict[str, str] = {mode: "--" + mode.replace("_", "-") for mode in M
 # argparse ne parle qu'anglais : ses messages d'erreur les plus courants sont reformulés en français.
 _ARGPARSE_MESSAGES: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"^unrecognized arguments: (?P<rest>.+)$"), r"option ou argument inconnu : \g<rest>"),
-    (re.compile(r"^argument (?P<option>\S+): expected one argument$"), r"l'option \g<option> attend une valeur"),
+    (re.compile(r"^argument (?P<option>\S+): expected one argument$"), r"l’option \g<option> attend une valeur"),
     (re.compile(r"^argument (?P<option>\S+): expected at least one argument$"),
-     r"l'option \g<option> attend au moins une valeur"),
+     r"l’option \g<option> attend au moins une valeur"),
     (re.compile(r"^argument (?P<option>\S+): not allowed with argument (?P<other>\S+)$"),
      r"les options \g<option> et \g<other> ne peuvent pas être utilisées ensemble"),
     (re.compile(r"^argument (?P<option>\S+): invalid choice: (?P<value>.+) \(choose from (?P<choices>.+)\)$"),
-     r"l'option \g<option> n'accepte pas \g<value> (valeurs possibles : \g<choices>)"),
+     r"l’option \g<option> n’accepte pas \g<value> (valeurs possibles : \g<choices>)"),
     (re.compile(r"^argument (?P<option>\S+): (?P<rest>.+)$"), r"option \g<option> : \g<rest>"),
 )
 
@@ -76,7 +76,7 @@ Exemples :
   python main.py --benchmark --quick
   python main.py --simulate-failures --scenario duplicate_execution --protocol rest
 
-Les ports du laboratoire se décalent en bloc avec la variable d'environnement RPCX_PORT_OFFSET.
+Les ports du laboratoire se décalent en bloc avec la variable d’environnement RPCX_PORT_OFFSET.
 """
 
 
@@ -104,7 +104,7 @@ def _bounded_int(minimum: int, maximum: int) -> Callable[[str], int]:
         try:
             value = int(text)
         except ValueError:
-            raise argparse.ArgumentTypeError(f"« {text} » n'est pas un nombre entier") from None
+            raise argparse.ArgumentTypeError(f"« {text} » n’est pas un nombre entier") from None
         if not minimum <= value <= maximum:
             raise argparse.ArgumentTypeError(f"attendu : un entier compris entre {minimum} et {maximum}")
         return value
@@ -136,7 +136,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     modes = parser.add_argument_group("Modes (un seul à la fois) ").add_mutually_exclusive_group()
     modes.add_argument("--benchmark", action="store_true",
-                       help="banc d'essai complet : tailles JSON vs Protobuf, temps par appel, local vs distant")
+                       help="banc d’essai complet : tailles JSON vs Protobuf, temps par appel, local vs distant")
     modes.add_argument("--simulate-failures", action="store_true",
                        help="laboratoire de pannes : latence, échéance, coupure, panne du serveur, doublon")
     modes.add_argument("--contract", action="store_true",
@@ -145,16 +145,16 @@ def build_parser() -> argparse.ArgumentParser:
                        help="visite guidée « sous le capot » : le même appel en JSON-RPC maison, gRPC puis REST")
     modes.add_argument("--dashboard", action="store_true", help="dashboard web (FastAPI + WebSocket)")
     modes.add_argument("--serve", action="store_true",
-                       help="lance tous les serveurs au premier plan, jusqu'à Ctrl+C")
+                       help="lance tous les serveurs au premier plan, jusqu’à Ctrl+C")
     modes.add_argument("--call", nargs="+", metavar=("METHOD", "ARG"),
-                       help="appel unitaire : la procédure, puis ses arguments dans l'ordre du catalogue "
+                       help="appel unitaire : la procédure, puis ses arguments dans l’ordre du catalogue "
                             "(JSON accepté, nom=valeur possible ; un argument omis prend sa valeur par défaut)")
 
     benchmark = parser.add_argument_group("Options de --benchmark ")
     benchmark.add_argument("--iterations", type=_bounded_int(1, MAX_BENCHMARK_ITERATIONS), metavar="N",
-                           help="nombre d'appels chronométrés par protocole")
-    benchmark.add_argument("--quick", action="store_true", help="version courte : moins d'appels, balayage réduit")
-    benchmark.add_argument("--no-save", action="store_true", help="n'enregistre pas le rapport dans reports/")
+                           help="nombre d’appels chronométrés par protocole")
+    benchmark.add_argument("--quick", action="store_true", help="version courte : moins d’appels, balayage réduit")
+    benchmark.add_argument("--no-save", action="store_true", help="n’enregistre pas le rapport dans reports/")
 
     failures = parser.add_argument_group("Options de --simulate-failures ")
     failures.add_argument("--scenario", metavar="ID",
@@ -166,19 +166,19 @@ def build_parser() -> argparse.ArgumentParser:
                         help=f"protocole : {', '.join(PROTOCOLS)} (par défaut : custom ; local est réservé à --call)")
 
     demo = parser.add_argument_group("Option de --demo ")
-    demo.add_argument("--no-pause", action="store_true", help="déroule la visite sans s'arrêter entre les étapes")
+    demo.add_argument("--no-pause", action="store_true", help="déroule la visite sans s’arrêter entre les étapes")
 
     dashboard = parser.add_argument_group("Options de --dashboard ")
     dashboard.add_argument("--port", type=_bounded_int(1, MAX_PORT), metavar="N",
                            help="port HTTP du dashboard (par défaut : 8000 + RPCX_PORT_OFFSET)")
-    dashboard.add_argument("--no-browser", action="store_true", help="n'ouvre pas le navigateur")
+    dashboard.add_argument("--no-browser", action="store_true", help="n’ouvre pas le navigateur")
 
     call = parser.add_argument_group("Options de --call ")
     call.add_argument("--inspect", action="store_true",
-                      help="ajoute le pipeline de l'appel et les octets échangés (« sous le capot »)")
+                      help="ajoute le pipeline de l’appel et les octets échangés (« sous le capot »)")
     call.add_argument("--via-proxy", action="store_true",
-                      help="fait passer l'appel par le proxy de chaos plutôt qu'en direct")
-    call.add_argument("--timeout", type=_positive_seconds, metavar="S", help="échéance de l'appel, en secondes")
+                      help="fait passer l’appel par le proxy de chaos plutôt qu’en direct")
+    call.add_argument("--timeout", type=_positive_seconds, metavar="S", help="échéance de l’appel, en secondes")
 
     general = parser.add_argument_group("Général ")
     general.add_argument("--version", action="version", version=f"{APP_NAME} · {APP_TAGLINE} {VERSION}",
@@ -194,10 +194,10 @@ def resolve_mode(parser: argparse.ArgumentParser, args: argparse.Namespace) -> s
         if getattr(args, attribute) in (None, False) or mode in accepted:
             continue
         owners = " ou ".join(_MODE_FLAGS[name] for name in accepted)
-        parser.error(f"l'option {flag} ne s'utilise qu'avec {owners}")
+        parser.error(f"l’option {flag} ne s’utilise qu’avec {owners}")
     if mode == "simulate_failures" and args.protocol == "local":
         parser.error(
-            f"un scénario de panne a besoin d'un réseau à dérégler : --protocol {', '.join(REMOTE_PROTOCOLS)}"
+            f"un scénario de panne a besoin d’un réseau à dérégler : --protocol {', '.join(REMOTE_PROTOCOLS)}"
         )
     return mode
 
@@ -214,7 +214,7 @@ def _run(mode: str, args: argparse.Namespace, console: "Console") -> int:
 
         ensure_generated()
     except RuntimeError as error:
-        console.print(failure_panel("Les contrats .proto n'ont pas pu être compilés", str(error)))
+        console.print(failure_panel("Les contrats .proto n’ont pas pu être compilés", str(error)))
         return EXIT_FAILURE
 
     from cli import cli_runner
@@ -226,7 +226,7 @@ def _run(mode: str, args: argparse.Namespace, console: "Console") -> int:
             runtime.start()
     except RuntimeError as error:
         console.print(failure_panel(
-            "Le laboratoire n'a pas pu démarrer",
+            "Le laboratoire n’a pas pu démarrer",
             str(error),
             f"Décalage actuel : RPCX_PORT_OFFSET={PORT_OFFSET}. Sous PowerShell : "
             f"$env:RPCX_PORT_OFFSET = \"{PORT_OFFSET + PORT_OFFSET_STEP}\" ; puis relancez la commande.",

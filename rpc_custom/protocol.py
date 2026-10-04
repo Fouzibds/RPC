@@ -238,14 +238,14 @@ def read_frame(sock: socket.socket) -> bytes | None:
     if not header:
         return None
     if len(header) < HEADER_SIZE:
-        raise RpcProtocolError("Connexion fermée au milieu de l'en-tête d'une trame")
+        raise RpcProtocolError("Connexion fermée au milieu de l’en-tête d’une trame")
     (length,) = _HEADER.unpack(header)
     if length > MAX_FRAME_BYTES:
         # On refuse AVANT de lire : la longueur annoncée ne doit pas dicter la mémoire allouée.
         raise RpcProtocolError(f"Trame annoncée trop volumineuse : {length} octets (maximum {MAX_FRAME_BYTES})")
     body = _recv_exactly(sock, length)
     if len(body) < length:
-        raise RpcProtocolError(f"Connexion fermée au milieu d'une trame ({len(body)} octets reçus sur {length})")
+        raise RpcProtocolError(f"Connexion fermée au milieu d’une trame ({len(body)} octets reçus sur {length})")
     return body
 
 

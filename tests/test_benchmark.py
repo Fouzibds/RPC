@@ -868,7 +868,7 @@ def test_command_line_runs_prints_and_saves_a_report(
     assert bench.main(["--quick", "--iterations", "12"]) == 0
 
     output = capsys.readouterr().out
-    assert "banc d'essai de performance (version courte)" in output
+    assert "banc d’essai de performance (version courte)" in output
     assert "Taille des messages (octets) — JSON vs Protobuf" in output
     assert "Temps moyen par appel (ms)" in output
     assert "Rapport enregistré" in output

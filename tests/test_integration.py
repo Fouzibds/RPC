@@ -149,7 +149,7 @@ def test_same_call_gives_the_same_result_on_every_route(
     reference = results["local", False]
     assert reference[0] == "ok"
     for route, result in results.items():
-        assert result == reference, f"{route} ne renvoie pas le même dictionnaire que l'appel local"
+        assert result == reference, f"{route} ne renvoie pas le même dictionnaire que l’appel local"
 
 
 @pytest.mark.parametrize(

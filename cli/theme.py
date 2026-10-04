@@ -289,13 +289,13 @@ def json_block(value: Any, max_lines: int | None = None) -> RenderableType:
     code = Syntax("\n".join(lines), "json", theme="ansi_dark", background_color="default", word_wrap=True)
     if not hidden:
         return code
-    return Group(code, Text(f"… {hidden} lignes de plus (résultat abrégé à l'affichage)", style=MUTED))
+    return Group(code, Text(f"… {hidden} lignes de plus (résultat abrégé à l’affichage)", style=MUTED))
 
 
 def error_panel(error: RpcError, footer: str = "") -> Panel:
     """Erreur d'appel distant : code canonique, message, et ce qu'un client peut en faire."""
     if error.retryable:
-        advice = "oui — panne de transport : l'appel peut être retenté, s'il est idempotent"
+        advice = "oui — panne de transport : l’appel peut être retenté, s’il est idempotent"
     else:
         advice = "non — rejouer le même appel donnerait la même erreur"
     rows: list[tuple[str, RenderableType]] = [

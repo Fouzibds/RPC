@@ -53,8 +53,8 @@ _LINGER_RESET = struct.pack("HH" if os.name == "nt" else "ii", 1, 0)
 _HTTP2_PREFACE = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 
 _RESET_TEXT: dict[str, str] = {
-    "armed": "Coupure armée : la connexion est réinitialisée et la requête n'atteint pas le serveur.",
-    "probability": "Coupure aléatoire : la connexion est réinitialisée à l'arrivée de la requête.",
+    "armed": "Coupure armée : la connexion est réinitialisée et la requête n’atteint pas le serveur.",
+    "probability": "Coupure aléatoire : la connexion est réinitialisée à l’arrivée de la requête.",
     "down": "Serveur en panne : la connexion en cours est coupée.",
     "blackhole_end": "Fin du trou noir : des octets ont été perdus, la connexion est réinitialisée.",
 }
@@ -364,7 +364,7 @@ class ChaosProxy:
                 listener.close()
                 raise OSError(
                     exc.errno,
-                    f"Proxy « {self.name} » : impossible d'écouter sur "
+                    f"Proxy « {self.name} » : impossible d’écouter sur "
                     f"{self.listen_host}:{self.listen_port} ({exc.strerror or exc})",
                 ) from exc
             listener.settimeout(_SWEEP_INTERVAL_S)
@@ -686,7 +686,7 @@ class ChaosProxy:
         link.reply_lost = True
         self._fault("lost_replies", "network.lost_reply", len(data), bytes=len(data), hold_ms=self.hold_ms,
                     text="La requête atteint le serveur, mais sa réponse est perdue : "
-                         "l'appelant ignore si l'effet a eu lieu.")
+                         "l’appelant ignore si l’effet a eu lieu.")
         delivered_at = self._relay(link, data, conditions, upward=True, spike=False)
         # Le compte à rebours part de la remise au serveur : il a le temps d'exécuter la requête.
         link.down.schedule(link.abort, delivered_at + self.hold_ms / 1000)

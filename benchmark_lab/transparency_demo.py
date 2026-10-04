@@ -140,13 +140,13 @@ async function updateStock(productId, quantity = 3) {
 }""" % (DEFAULT_TIMEOUT_S * 1000)
 
 _JAVASCRIPT_CONCERNS = (
-    "Construire l'URL et échapper ses segments",
+    "Construire l’URL et échapper ses segments",
     "Choisir le verbe HTTP",
     "Poser les en-têtes (Content-Type, Accept)",
     "Sérialiser les arguments en JSON",
-    "Fixer le délai d'attente (AbortSignal)",
+    "Fixer le délai d’attente (AbortSignal)",
     "Désérialiser le corps de la réponse",
-    "Tester response.ok et traduire l'erreur",
+    "Tester response.ok et traduire l’erreur",
 )
 
 _BUSINESS_FAILURES = "Erreur métier : produit inconnu, stock insuffisant"
@@ -182,7 +182,7 @@ _VARIANTS: tuple[_Variant, ...] = (
         concerns=(),
         failures=(_BUSINESS_FAILURES,),
         note=(
-            "La référence : aucun réseau, aucune sérialisation. L'appel rend toujours la main, et ne peut "
+            "La référence : aucun réseau, aucune sérialisation. L’appel rend toujours la main, et ne peut "
             "échouer que pour une raison métier."
         ),
     ),
@@ -194,8 +194,8 @@ _VARIANTS: tuple[_Variant, ...] = (
         concerns=(),
         failures=(_BUSINESS_FAILURES, _NETWORK_FAILURES, _OUTAGE_FAILURES),
         note=(
-            "Exactement la ligne de l'appel local : c'est la transparence de localisation. Le stub sérialise, "
-            "envoie, attend et désérialise — mais l'appel peut désormais lever ce qu'un appel local ne lève "
+            "Exactement la ligne de l’appel local : c’est la transparence de localisation. Le stub sérialise, "
+            "envoie, attend et désérialise — mais l’appel peut désormais lever ce qu’un appel local ne lève "
             "jamais : RpcTimeoutError, RpcTransportError."
         ),
     ),
@@ -206,34 +206,34 @@ _VARIANTS: tuple[_Variant, ...] = (
         setup='grpc_stub = InventoryServiceStub(grpc.insecure_channel(f"{host}:{port}"))',
         concerns=(
             "Construire le message de requête typé (UpdateStockRequest)",
-            "Fixer l'échéance de l'appel (timeout)",
+            "Fixer l’échéance de l’appel (timeout)",
         ),
         failures=(_BUSINESS_FAILURES, _NETWORK_FAILURES, _OUTAGE_FAILURES),
         note=(
-            "Le contrat impose un message typé : une ligne de plus, en échange d'arguments vérifiés avant "
-            "tout envoi et d'un stub généré dans n'importe quel langage. Les échecs arrivent sous la forme "
-            "d'une grpc.RpcError porteuse d'un statut."
+            "Le contrat impose un message typé : une ligne de plus, en échange d’arguments vérifiés avant "
+            "tout envoi et d’un stub généré dans n’importe quel langage. Les échecs arrivent sous la forme "
+            "d’une grpc.RpcError porteuse d’un statut."
         ),
     ),
     _Variant(
         id="rest",
         title="REST à la main — http.client",
         function=update_stock_rest_by_hand,
-        setup="# aucun objet à créer : l'hôte et le port sont passés à chaque appel",
+        setup="# aucun objet à créer : l’hôte et le port sont passés à chaque appel",
         concerns=(
-            "Construire l'URL et échapper ses segments",
+            "Construire l’URL et échapper ses segments",
             "Choisir le verbe HTTP",
             "Sérialiser les arguments en JSON",
             "Poser les en-têtes (Content-Type, Accept)",
             "Ouvrir, puis fermer la connexion",
-            "Fixer le délai d'attente",
+            "Fixer le délai d’attente",
             "Désérialiser le corps de la réponse",
             "Interpréter le code de statut HTTP",
             "Traduire pannes réseau et erreurs métier en exceptions",
         ),
         failures=(_BUSINESS_FAILURES, _NETWORK_FAILURES, _OUTAGE_FAILURES),
         note=(
-            "Rien n'est caché, donc tout est à écrire — et à réécrire pour chaque route. Cette version ouvre "
+            "Rien n’est caché, donc tout est à écrire — et à réécrire pour chaque route. Cette version ouvre "
             "même une connexion par appel : la réutiliser (keep-alive) serait une préoccupation de plus."
         ),
     ),
@@ -301,13 +301,13 @@ def code_comparison() -> dict[str, Any]:
             "concerns": list(_JAVASCRIPT_CONCERNS),
         },
         "takeaway": (
-            "Les quatre écritures font la même chose et renvoient le même stock. Avec un stub, l'appel "
-            f"distant tient en {stub['lines']} lignes, autant que l'appel local ({local['lines']}) : le "
+            "Les quatre écritures font la même chose et renvoient le même stock. Avec un stub, l’appel "
+            f"distant tient en {stub['lines']} lignes, autant que l’appel local ({local['lines']}) : le "
             "middleware se charge de la sérialisation, du transport et de la traduction des erreurs. Sans "
-            f"stub, ces {len(rest['concerns'])} préoccupations reviennent à l'appelant — {rest['lines']} "
+            f"stub, ces {len(rest['concerns'])} préoccupations reviennent à l’appelant — {rest['lines']} "
             "lignes, à réécrire pour chaque route. Mais cette transparence est aussi un piège : rien, dans "
-            "le code, ne distingue l'appel qui coûte quelques microsecondes de celui qui traverse un réseau, "
-            "peut expirer, et dont l'échec ne dit pas si le stock a été modifié."
+            "le code, ne distingue l’appel qui coûte quelques microsecondes de celui qui traverse un réseau, "
+            "peut expirer, et dont l’échec ne dit pas si le stock a été modifié."
         ),
     }
 
@@ -413,20 +413,20 @@ def run_comparison(
     equivalent = len(outcomes) == 1
     if not equivalent:
         summary = (
-            "Les quatre écritures n'ont pas donné le même résultat : un serveur est injoignable, ou le stock "
+            "Les quatre écritures n’ont pas donné le même résultat : un serveur est injoignable, ou le stock "
             "de ce produit a été modifié par ailleurs pendant la comparaison."
         )
     elif runs[0]["ok"]:
         # Sans cette précision, la durée de l'écriture REST (connexion comprise) passerait pour celle du protocole.
         summary = (
             f"Les quatre écritures renvoient le même nouveau stock ({runs[0]['result']}) : seuls changent la "
-            "quantité de code à la charge de l'appelant et le temps de l'aller-retour. Ces durées ne classent "
-            "pas les protocoles : l'écriture REST ouvre une connexion TCP à chaque appel, quand les deux stubs "
+            "quantité de code à la charge de l’appelant et le temps de l’aller-retour. Ces durées ne classent "
+            "pas les protocoles : l’écriture REST ouvre une connexion TCP à chaque appel, quand les deux stubs "
             "réutilisent la leur."
         )
     else:
         summary = (
-            f"Les quatre écritures échouent de la même façon ({runs[0]['error']['code']}) : l'erreur métier "
+            f"Les quatre écritures échouent de la même façon ({runs[0]['error']['code']}) : l’erreur métier "
             "traverse chaque middleware sans changer de sens."
         )
     return {
@@ -484,8 +484,8 @@ def main() -> int:
         concerns = snippet["concerns"]
         footer = Text(style=MUTED)
         footer.append(
-            f"À la charge de l'appelant : {len(concerns)} préoccupations" if concerns
-            else "Rien à la charge de l'appelant",
+            f"À la charge de l’appelant : {len(concerns)} préoccupations" if concerns
+            else "Rien à la charge de l’appelant",
             style="bold",
         )
         footer.append("".join(f"\n  · {concern}" for concern in concerns))

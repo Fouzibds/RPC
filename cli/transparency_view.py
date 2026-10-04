@@ -36,12 +36,12 @@ def _snippet_panel(snippet: Mapping[str, Any]) -> Panel:
     concerns = snippet["concerns"]
     footer = Text()
     if concerns:
-        footer.append(f"À la charge de l'appelant : {len(concerns)} préoccupations", style=f"bold {SUBTLE}")
+        footer.append(f"À la charge de l’appelant : {len(concerns)} préoccupations", style=f"bold {SUBTLE}")
         footer.append("".join(f"\n  · {concern}" for concern in concerns), style=MUTED)
     elif snippet["id"] == "local":
         footer.append("Rien à gérer : un appel de méthode ordinaire, dans le même processus", style=f"bold {SUBTLE}")
     else:
-        footer.append("Rien à la charge de l'appelant : le stub s'occupe de tout", style=f"bold {SUBTLE}")
+        footer.append("Rien à la charge de l’appelant : le stub s’occupe de tout", style=f"bold {SUBTLE}")
     body: list[RenderableType] = [
         Syntax(snippet["code"], snippet["language"], theme="ansi_dark", background_color="default", word_wrap=True),
         Text(),
@@ -106,7 +106,7 @@ def render_runs(console: Console, comparison: Mapping[str, Any], outcome: Mappin
         ))
     table = make_table(
         "Les quatre écritures, exécutées",
-        caption=f"Stock de {outcome['product_id']} avant l'opération : {fr_number(outcome['stock_before'])} — "
+        caption=f"Stock de {outcome['product_id']} avant l’opération : {fr_number(outcome['stock_before'])} — "
                 f"rétabli après chaque appel. Durée : médiane de {fr_number(outcome['repeats'])} appels.",
     )
     console.print(fill_table(table, columns, rows, narrow=is_narrow(console)))

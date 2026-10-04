@@ -64,7 +64,7 @@ SUITE_LABELS: dict[str, str] = {
     "serialization": "Sérialisation JSON vs Protobuf",
     "latency": "Latence par protocole",
     "network": "Local vs distant selon la latence du réseau",
-    "done": "Banc d'essai terminé",
+    "done": "Banc d’essai terminé",
 }
 
 REFERENCE_PRODUCT = "SKU-1001"
@@ -147,7 +147,7 @@ def resolve_config(config: Mapping[str, Any] | None = None) -> dict[str, Any]:
     unknown = sorted(set(supplied) - set(DEFAULT_CONFIG))
     if unknown:
         raise ValueError(
-            f"Option(s) de banc d'essai inconnue(s) : {', '.join(unknown)} (attendues : {', '.join(DEFAULT_CONFIG)})"
+            f"Option(s) de banc d’essai inconnue(s) : {', '.join(unknown)} (attendues : {', '.join(DEFAULT_CONFIG)})"
         )
     settings = {**DEFAULT_CONFIG, **{key: value for key, value in supplied.items() if value is not None}}
     suites = _as_tuple("suites", settings["suites"])
@@ -211,7 +211,7 @@ def _resolve_params(method: str, params: Mapping[str, Any] | None) -> dict[str, 
             f"Procédure inconnue ou non mesurable : {method!r} (attendu, appels unaires : {', '.join(DEFAULT_PARAMS)})"
         )
     if params is not None and not isinstance(params, Mapping):
-        raise ValueError(f"« params » doit être un dictionnaire d'arguments (reçu : {params!r})")
+        raise ValueError(f"« params » doit être un dictionnaire d’arguments (reçu : {params!r})")
     resolved = {**DEFAULT_PARAMS[method], **(params or {})}
     unknown = sorted(set(resolved) - {spec.name for spec in method_spec(method).params})
     if unknown:
@@ -1099,7 +1099,7 @@ def _highlight_payload(report: Mapping[str, Any]) -> dict[str, str] | None:
     reason = (
         "Protobuf ne transmet que des numéros de champ là où JSON répète chaque nom en toutes lettres."
         if smaller else
-        "Sur ce message, le format binaire n'est pas plus compact que le texte."
+        "Sur ce message, le format binaire n’est pas plus compact que le texte."
     )
     return _highlight(
         "payload_size",
@@ -1183,7 +1183,7 @@ def _highlight_http(report: Mapping[str, Any]) -> dict[str, str] | None:
     share = (exchanged - useful) / exchanged * 100
     return _highlight(
         "http_overhead",
-        "Part de l'enveloppe HTTP dans un appel REST",
+        "Part de l’enveloppe HTTP dans un appel REST",
         fr_percent(share, 0),
         f"{method} : {fr_bytes(exchanged)} échangés pour {fr_bytes(useful)} de JSON utile. Ligne de requête, "
         f"statut et en-têtes pèsent {fr_bytes(exchanged - useful)}, répétés à chaque appel.",
@@ -1230,11 +1230,11 @@ def _highlight_remote_cost(report: Mapping[str, Any]) -> dict[str, str] | None:
     factor = fastest["mean_ms"] / local["mean_ms"]
     return _highlight(
         "remote_cost",
-        "Coût d'un appel distant",
+        "Coût d’un appel distant",
         fr_ratio(factor),
         f"{latency.get('method', '')} : {fr_duration(local['mean_ms'])} en appel local, "
         f"{fr_duration(fastest['mean_ms'])} avec {fastest['label']}, le plus rapide des protocoles distants "
-        f"de cette mesure. Le code appelant est le même ; l'appel, lui, dure {_times(factor)} plus longtemps.",
+        f"de cette mesure. Le code appelant est le même ; l’appel, lui, dure {_times(factor)} plus longtemps.",
         "warning",
     )
 
@@ -1309,7 +1309,7 @@ def _highlight_throughput(report: Mapping[str, Any]) -> dict[str, str] | None:
     detail = f"{best['label']}, avec {fr_number(clients)} client{'s en parallèle' if clients > 1 else ''}"
     local = next((result for result in _measured(report) if result["protocol"] == "local" and result.get("rps")), None)
     if local is not None:
-        detail += f" ; l'appel local atteint {fr_number(local['rps'])} appels/s"
+        detail += f" ; l’appel local atteint {fr_number(local['rps'])} appels/s"
     return _highlight(
         "throughput",
         "Débit le plus élevé à distance",
@@ -1337,11 +1337,11 @@ def _highlight_network(report: Mapping[str, Any]) -> dict[str, str] | None:
         f"{fr_duration(mean * iterations)} à distance"
     )
     detail += f" contre {fr_duration(local * iterations)} en local. " if local else ". "
-    detail += f"Le réseau représente {fr_percent(min(latency_ms / mean, 1) * 100, 1)} du temps d'un appel"
+    detail += f"Le réseau représente {fr_percent(min(latency_ms / mean, 1) * 100, 1)} du temps d’un appel"
     if len(remote) > 1:
         spread = max(remote) - min(remote)
         detail += (
-            f" ; l'écart entre le plus rapide et le plus lent des protocoles est de {fr_duration(spread)}, "
+            f" ; l’écart entre le plus rapide et le plus lent des protocoles est de {fr_duration(spread)}, "
             f"soit {fr_percent(spread / mean * 100, 1)} de ce temps"
         )
     return _highlight(
@@ -1388,11 +1388,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Lance le banc d'essai complet sur un laboratoire à ports éphémères, l'affiche et l'enregistre."""
     parser = argparse.ArgumentParser(
         prog="python -m benchmark_lab.benchmark_perf",
-        description="Banc d'essai de performance : tailles des messages, sérialisation, latence, réseau simulé.",
+        description="Banc d’essai de performance : tailles des messages, sérialisation, latence, réseau simulé.",
     )
-    parser.add_argument("--quick", action="store_true", help="version courte : moins d'appels, balayage réduit")
+    parser.add_argument("--quick", action="store_true", help="version courte : moins d’appels, balayage réduit")
     parser.add_argument("--iterations", type=_positive_int, metavar="N",
-                        help="nombre d'appels chronométrés par protocole")
+                        help="nombre d’appels chronométrés par protocole")
     args = parser.parse_args(argv)
 
     for stream in (sys.stdout, sys.stderr):   # console Windows : accents et cadres en UTF-8
@@ -1404,7 +1404,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     from lab import LabRuntime   # import tardif : il charge les trois middlewares
 
-    print(f"{APP_NAME} — banc d'essai de performance{' (version courte)' if args.quick else ''}")
+    print(f"{APP_NAME} — banc d’essai de performance{' (version courte)' if args.quick else ''}")
     try:
         # Ports éphémères : le banc tourne même si un laboratoire occupe déjà les ports par défaut.
         with LabRuntime.ephemeral() as runtime:
@@ -1413,7 +1413,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"Erreur : {exc}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
-        print("\nBanc d'essai interrompu.", file=sys.stderr)
+        print("\nBanc d’essai interrompu.", file=sys.stderr)
         return 130
     print()
     print(to_text(report))

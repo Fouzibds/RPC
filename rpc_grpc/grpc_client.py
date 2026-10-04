@@ -305,7 +305,7 @@ def _demo(console: Any, client: GrpcInventoryClient) -> None:
 
     sent = next((event for event in events if event.stage == "client.send"), None)
     if sent is not None and sent.payload is not None:
-        section("Sous le capot — la requête update_stock telle qu'elle part sur le fil")
+        section("Sous le capot — la requête update_stock telle qu’elle part sur le fil")
         console.print(f"[dim]{hexdump(sent.payload)}[/]")
         wire = Table(box=None, padding=(0, 2), header_style="bold cyan")
         wire.add_column("Octets")
@@ -355,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(
         prog="python -m rpc_grpc.grpc_client",
-        description="Démonstration des quatre formes d'appel gRPC contre le serveur du contrat v1.",
+        description="Démonstration des quatre formes d’appel gRPC contre le serveur du contrat v1.",
     )
     parser.add_argument("--host", default=HOST, help="adresse du serveur")
     parser.add_argument("--port", type=int, default=default_ports().grpc, help="port du serveur")

@@ -57,9 +57,9 @@ _SERIALIZATION_STAGES = ("client.marshal", "server.unmarshal", "server.marshal",
 _LEADS: dict[str, str] = {
     "custom": "Le stub écrit à la main : un message JSON-RPC 2.0, précédé de sa longueur sur 4 octets, dans une "
               "connexion TCP.",
-    "grpc": "Le stub généré par protoc : un message Protobuf binaire, précédé d'un préfixe de 5 octets, dans un "
+    "grpc": "Le stub généré par protoc : un message Protobuf binaire, précédé d’un préfixe de 5 octets, dans un "
             "flux HTTP/2.",
-    "rest": "Sans stub : une requête HTTP/1.1 dont l'URL désigne la ressource, le verbe l'action, et le corps "
+    "rest": "Sans stub : une requête HTTP/1.1 dont l’URL désigne la ressource, le verbe l’action, et le corps "
             "JSON les arguments.",
 }
 
@@ -160,9 +160,9 @@ def _takeaway(outcomes: Mapping[str, CallOutcome]) -> Panel:
     points = Table.grid(padding=(0, 2))
     points.add_column(style=f"bold {ACCENT}", no_wrap=True)
     points.add_column(ratio=1)
-    points.add_row("Stub", "L'appelant écrit un appel de fonction ; le stub le transforme en octets et rend la "
+    points.add_row("Stub", "L’appelant écrit un appel de fonction ; le stub le transforme en octets et rend la "
                            "réponse comme une valeur de retour.")
-    points.add_row("Marshalling", "JSON nomme chaque champ en toutes lettres ; Protobuf n'envoie qu'un numéro et "
+    points.add_row("Marshalling", "JSON nomme chaque champ en toutes lettres ; Protobuf n’envoie qu’un numéro et "
                                   "un type de fil — le contrat .proto dit le reste.")
     points.add_row("Transport", "Une trame préfixée par sa longueur (maison), un flux HTTP/2 (gRPC) ou une requête "
                                 "HTTP/1.1 (REST) : trois façons de délimiter un message.")
@@ -174,7 +174,7 @@ def _takeaway(outcomes: Mapping[str, CallOutcome]) -> Panel:
         ratio = custom.request_bytes / grpc.request_bytes
         body += [Text(), Text(
             f"Ici, la requête gRPC pèse {fr_bytes(grpc.request_bytes)} contre {fr_bytes(custom.request_bytes)} "
-            f"pour JSON-RPC, soit {fr_number(ratio, 1)} fois moins : c'est le prix des noms de champs en clair.",
+            f"pour JSON-RPC, soit {fr_number(ratio, 1)} fois moins : c’est le prix des noms de champs en clair.",
             style=SUBTLE,
         )]
     body += [Text(), Text("Pour aller plus loin : python main.py --benchmark · --simulate-failures · --contract",
@@ -192,12 +192,12 @@ def run_tour(runtime: "LabRuntime", console: Console, *, pause: Pause | None = N
     header(
         console,
         "Visite guidée « sous le capot » — un appel, trois middlewares, octet par octet",
-        f"L'appel suivi : {call}",
+        f"L’appel suivi : {call}",
     )
     console.print()
     console.print(Padding(Text.assemble(
-        ("Pour l'appelant, c'est une seule ligne, la même quel que soit le protocole : ", SUBTLE),
-        (f"client.{call}", "bold"), (". Voici ce qu'elle déclenche réellement.", SUBTLE),
+        ("Pour l’appelant, c’est une seule ligne, la même quel que soit le protocole : ", SUBTLE),
+        (f"client.{call}", "bold"), (". Voici ce qu’elle déclenche réellement.", SUBTLE),
     ), (0, 2)))
     outcomes: dict[str, CallOutcome] = {}
     for number, protocol in enumerate(REMOTE_PROTOCOLS, start=1):

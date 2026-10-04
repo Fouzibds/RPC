@@ -230,7 +230,7 @@ class GrpcServerHandle:
             if not bound:
                 executor.shutdown(wait=False)
                 raise OSError(
-                    f"Impossible d'écouter sur {self.address} (serveur {self.name}) : le port est déjà utilisé."
+                    f"Impossible d’écouter sur {self.address} (serveur {self.name}) : le port est déjà utilisé."
                 )
             server.start()
             self.port, self._server, self._executor = bound, server, executor
@@ -305,11 +305,11 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(
         prog="python -m rpc_grpc.grpc_server",
-        description="Serveur gRPC du contrat v1 (service de calcul et de gestion d'inventaire).",
+        description="Serveur gRPC du contrat v1 (service de calcul et de gestion d’inventaire).",
     )
-    parser.add_argument("--host", default=HOST, help="adresse d'écoute")
+    parser.add_argument("--host", default=HOST, help="adresse d’écoute")
     parser.add_argument(
-        "--port", type=int, default=default_ports().grpc, help="port d'écoute (0 = attribué par le système)"
+        "--port", type=int, default=default_ports().grpc, help="port d’écoute (0 = attribué par le système)"
     )
     args = parser.parse_args(argv)
 

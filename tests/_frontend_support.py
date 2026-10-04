@@ -94,7 +94,7 @@ class LiveDashboard:
         while not self._server.started:
             if not self._thread.is_alive() or time.monotonic() > deadline:
                 self._listener.close()
-                raise RuntimeError("Le dashboard de test n'a pas démarré (uvicorn s'est arrêté ou ne répond pas).")
+                raise RuntimeError("Le dashboard de test n’a pas démarré (uvicorn s’est arrêté ou ne répond pas).")
             time.sleep(0.02)
         return self
 
@@ -103,12 +103,12 @@ class LiveDashboard:
         self._thread.join(SHUTDOWN_PATIENCE_S)
         self._listener.close()
         if self._thread.is_alive():
-            raise RuntimeError("Le thread du dashboard de test ne s'est pas arrêté.")
+            raise RuntimeError("Le thread du dashboard de test ne s’est pas arrêté.")
         try:
             # Reprendre le port prouve que plus personne n'y écoute.
             socket.create_server((self.runtime.host, self.port)).close()
         except OSError as exc:
-            raise RuntimeError(f"Le port {self.port} du dashboard de test n'a pas été libéré.") from exc
+            raise RuntimeError(f"Le port {self.port} du dashboard de test n’a pas été libéré.") from exc
 
     def api(self, method: str, path: str, body: Any = None) -> Any:
         """Appelle l'API du dashboard hors du navigateur et renvoie le JSON décodé (``HTTPError`` si ≥ 400)."""

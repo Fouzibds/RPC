@@ -189,5 +189,5 @@ def campaign_summary(console: Console, results: Sequence[Mapping[str, Any]], ela
     console.print(Text.assemble(
         (f"  {MARK_OK} ", f"bold {SUCCESS}"),
         f"{count} scénario{'s' if count > 1 else ''} en {fr_duration(elapsed_s * 1000)}",
-        (" — réseau, stocks et proxys remis dans l'état où ils étaient.", MUTED),
+        (" — réseau, stocks et proxys remis dans l’état où ils étaient.", MUTED),
     ))

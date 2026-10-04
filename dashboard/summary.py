@@ -24,17 +24,17 @@ from common.config import PROTOCOL_LABELS, PROTOCOLS
 Report = Mapping[str, Any]
 Results = Mapping[str, Mapping[str, Any]]
 
-_RUN_BENCHMARK = "Pas encore mesuré : lancez le banc d'essai (page « Benchmark »)."
+_RUN_BENCHMARK = "Pas encore mesuré : lancez le banc d’essai (page « Benchmark »)."
 _RUN_FAILURE = "Pas encore observé : jouez le scénario « {title} » (page « Chaos réseau »)."
 _RUN_CONTRACT = "Pas encore observé : jouez les scénarios de rupture (page « Contrat & IDL »)."
-_RUN_BATCH = "Pas encore mesuré : lancez un lot d'appels asynchrones (page « Console RPC »)."
+_RUN_BATCH = "Pas encore mesuré : lancez un lot d’appels asynchrones (page « Console RPC »)."
 _REFERENCE_METHOD = "get_product_details"
 _FAILURE_TITLES = {scenario["id"]: scenario["title"] for scenario in failure_simulation.SCENARIOS}
 
 # Matrice qualitative : ce qui distingue les quatre façons d'appeler la même procédure.
 _MATRIX: tuple[tuple[str, str, str, str, str], ...] = (
-    ("Contrat", "Signature de la fonction", "Implicite : découvert à l'exécution (rpc.discover)",
-     "IDL Protobuf, stub et squelette générés", "Convention d'URL et de verbes"),
+    ("Contrat", "Signature de la fonction", "Implicite : découvert à l’exécution (rpc.discover)",
+     "IDL Protobuf, stub et squelette générés", "Convention d’URL et de verbes"),
     ("Format des messages", "Aucun : objets en mémoire", "JSON (texte) précédé de sa longueur",
      "Protobuf (binaire) précédé de 5 octets", "JSON (texte) sous des en-têtes HTTP"),
     ("Transport", "Aucun", "TCP, connexion persistante", "HTTP/2, connexion persistante",
@@ -43,8 +43,8 @@ _MATRIX: tuple[tuple[str, str, str, str, str], ...] = (
      "Multiplexés sur une connexion (flux HTTP/2)", "Une connexion par appel en cours"),
     ("Flux (streaming)", "Générateur Python", "Flux serveur (notifications rpc.stream.item)",
      "Flux serveur, client et bidirectionnel", "Flux serveur (NDJSON par morceaux)"),
-    ("Typage", "Celui du langage", "Contrôlé à l'exécution, par le serveur",
-     "Contrôlé avant l'envoi, par le code généré", "Perdu dans l'URL, retrouvé par le serveur"),
+    ("Typage", "Celui du langage", "Contrôlé à l’exécution, par le serveur",
+     "Contrôlé avant l’envoi, par le code généré", "Perdu dans l’URL, retrouvé par le serveur"),
     ("Erreurs", "Exceptions", "Codes JSON-RPC (−32601, −32602…)", "Statuts gRPC (NOT_FOUND, UNAVAILABLE…)",
      "Statuts HTTP (404, 409, 503…)"),
     ("Échéance (timeout)", "Sans objet", "Locale au client", "Propagée au serveur (grpc-timeout)",
@@ -55,7 +55,7 @@ _MATRIX: tuple[tuple[str, str, str, str, str], ...] = (
      "Natif (fetch)"),
     ("Outillage", "Débogueur du langage", "À écrire soi-même", "protoc, greffons, grpcurl",
      "Universel : curl, proxys, caches HTTP"),
-    ("Couplage au contrat", "Fort : même programme", "Fort, et sans garde-fou : la rupture se voit à l'exécution",
+    ("Couplage au contrat", "Fort : même programme", "Fort, et sans garde-fou : la rupture se voit à l’exécution",
      "Fort : numéros de champs et types figés", "Plus lâche : les champs inconnus sont ignorés"),
 )
 
@@ -142,12 +142,12 @@ def _transparency() -> dict[str, Any]:
     return _item(
         "location_transparency",
         "Transparence de localisation",
-        "Un appel distant s'écrit comme un appel local : le stub se charge de la sérialisation, du transport et "
+        "Un appel distant s’écrit comme un appel local : le stub se charge de la sérialisation, du transport et "
         "de la traduction des erreurs. Le code métier ne change pas quand la procédure change de machine.",
         f"Le même update_stock tient en {code['stub_lines']} lignes avec le stub maison et {code['grpc_lines']} "
         f"avec le stub gRPC, contre {code['rest_lines']} lignes en REST écrit à la main, où "
-        f"{code['rest_concerns']} préoccupations reviennent à l'appelant (page « Transparence »).",
-        _metric("Lignes de code de l'appel avec un stub", code["stub_lines"], "lignes"),
+        f"{code['rest_concerns']} préoccupations reviennent à l’appelant (page « Transparence »).",
+        _metric("Lignes de code de l’appel avec un stub", code["stub_lines"], "lignes"),
         "code",
     )
 
@@ -175,12 +175,12 @@ def _compact_messages(report: Report | None) -> dict[str, Any]:
             f" Sur une liste de {fr_number(largest['items'])} produits : {fr_bytes(largest['protobuf_bytes'])} "
             f"contre {fr_bytes(largest['json_bytes'])}."
         )
-    metric = _metric("Taille d'une fiche produit en Protobuf, par rapport à JSON", row["protobuf_vs_json_pct"], "%")
+    metric = _metric("Taille d’une fiche produit en Protobuf, par rapport à JSON", row["protobuf_vs_json_pct"], "%")
     return _item("compact_messages", title, text, evidence, metric, "benchmark")
 
 
 def _light_framing(report: Report | None) -> dict[str, Any]:
-    title = "Peu d'octets autour du message"
+    title = "Peu d’octets autour du message"
     text = (
         "Le tramage RPC est minimal — 4 octets pour le JSON-RPC maison, 5 pour gRPC, dont HTTP/2 compresse les "
         "en-têtes — là où HTTP/1.1 répète ligne de départ et en-têtes en clair à chaque appel."
@@ -205,7 +205,7 @@ def _speed(report: Report | None) -> dict[str, Any]:
     title = "Des appels rapides sur un réseau sain"
     text = (
         "Connexion persistante, tramage léger, sérialisation efficace : sur un réseau proche et sain, un appel "
-        "RPC reste assez rapide pour relier les services d'une même application."
+        "RPC reste assez rapide pour relier les services d’une même application."
     )
     remote = _latency_results(report, remote_only=True)
     if not remote:
@@ -217,7 +217,7 @@ def _speed(report: Report | None) -> dict[str, Any]:
         title,
         text,
         f"Temps moyen par appel ({_conditions(report['latency'])}) : {listing}.",
-        _metric(f"Temps moyen d'un appel — {fastest['label']}", fastest["mean_ms"], "ms"),
+        _metric(f"Temps moyen d’un appel — {fastest['label']}", fastest["mean_ms"], "ms"),
         "benchmark",
     )
 
@@ -226,7 +226,7 @@ def _multiplexing(batches: Results) -> dict[str, Any]:
     title = "Multiplexage et flux"
     text = (
         "Une seule connexion transporte plusieurs appels simultanés, et des flux dans les deux sens avec gRPC : "
-        "pas de nouvelle connexion par requête, pas d'interrogation répétée pour suivre un indicateur."
+        "pas de nouvelle connexion par requête, pas d’interrogation répétée pour suivre un indicateur."
     )
     measured = [
         batch for protocol, batch in batches.items()
@@ -243,7 +243,7 @@ def _multiplexing(batches: Results) -> dict[str, Any]:
         f"Dernier lot asynchrone via {label} : {fr_number(best['count'])} appels {best['method']} terminés en "
         f"{fr_duration(best['wall_ms'])} sur une seule connexion, pour {fr_duration(best['sum_ms'])} de durées "
         "cumulées.",
-        _metric(f"Gain d'un lot de {fr_number(best['count'])} appels simultanés — {label}", best["speedup"], "×"),
+        _metric(f"Gain d’un lot de {fr_number(best['count'])} appels simultanés — {label}", best["speedup"], "×"),
         "calls",
     )
 
@@ -251,7 +251,7 @@ def _multiplexing(batches: Results) -> dict[str, Any]:
 def _typed_contract(contract: Results) -> dict[str, Any]:
     title = "Contrat typé, code généré"
     text = (
-        "L'IDL décrit procédures et messages une fois pour toutes : protoc en tire le stub et le squelette, une "
+        "L’IDL décrit procédures et messages une fois pour toutes : protoc en tire le stub et le squelette, une "
         "valeur hors contrat est refusée avant tout envoi, et un champ ajouté selon les règles reste lisible par "
         "les anciens clients."
     )
@@ -272,10 +272,10 @@ def _typed_contract(contract: Results) -> dict[str, Any]:
 # --- Inconvénients -------------------------------------------------------------------
 
 def _remote_cost(report: Report | None) -> dict[str, Any]:
-    title = "Un appel distant n'est pas un appel local"
+    title = "Un appel distant n’est pas un appel local"
     text = (
-        "Sérialisation, appels système, traversée de la pile réseau : même sans latence, l'appel distant coûte "
-        "bien plus cher que l'appel de fonction qu'il imite — et rien, dans le code appelant, ne le signale."
+        "Sérialisation, appels système, traversée de la pile réseau : même sans latence, l’appel distant coûte "
+        "bien plus cher que l’appel de fonction qu’il imite — et rien, dans le code appelant, ne le signale."
     )
     local = next((result for result in _latency_results(report) if result["protocol"] == "local"), None)
     remote = _latency_results(report, remote_only=True)
@@ -290,7 +290,7 @@ def _remote_cost(report: Report | None) -> dict[str, Any]:
         f"{report['latency'].get('method', '')} : {fr_duration(local['mean_ms'])} en appel local, "
         f"{fr_duration(fastest['mean_ms'])} avec {fastest['label']}, le plus rapide des protocoles distants "
         f"mesurés, soit {fr_ratio(factor)}.",
-        _metric(f"Surcoût de {fastest['label']} par rapport à l'appel local", round(factor, 1), "×"),
+        _metric(f"Surcoût de {fastest['label']} par rapport à l’appel local", round(factor, 1), "×"),
         "benchmark",
     )
 
@@ -322,7 +322,7 @@ def _latency_trap(report: Report | None, failures: Results) -> dict[str, Any]:
         title,
         text,
         f"Avec {added} ms de latence ajoutée, un appel {network.get('method', '')} dure en moyenne "
-        f"{fr_duration(mean)} à distance (moyenne des protocoles mesurés par le banc d'essai).",
+        f"{fr_duration(mean)} à distance (moyenne des protocoles mesurés par le banc d’essai).",
         _metric(f"Appel distant avec {added} ms de latence", round(mean, 3), "ms"),
         "benchmark",
     )
@@ -353,31 +353,31 @@ class _ScenarioArgument:
 _SCENARIO_ARGUMENTS: tuple[_ScenarioArgument, ...] = (
     _ScenarioArgument(
         "unknown_outcome", "timeout_spike",
-        "Après un timeout, l'issue est inconnue",
-        "Une échéance libère l'appelant, mais ne dit pas si le serveur a exécuté l'appel. Cet état « ni réussi "
-        "ni échoué » n'existe pas pour un appel local.",
-        "with_deadline_ms", "Attente de l'appelant avec une échéance", "ms",
+        "Après un timeout, l’issue est inconnue",
+        "Une échéance libère l’appelant, mais ne dit pas si le serveur a exécuté l’appel. Cet état « ni réussi "
+        "ni échoué » n’existe pas pour un appel local.",
+        "with_deadline_ms", "Attente de l’appelant avec une échéance", "ms",
     ),
     _ScenarioArgument(
         "partial_failure", "connection_cut",
         "Des pannes partielles",
         "Le réseau peut échouer alors que le client et le serveur sont corrects : chaque appel distant doit "
-        "prévoir l'erreur, l'attente et la nouvelle tentative.",
+        "prévoir l’erreur, l’attente et la nouvelle tentative.",
         "resilient_attempts", "Tentatives nécessaires pour aboutir", "tentatives",
     ),
     _ScenarioArgument(
         "outage", "server_outage",
         "Un serveur en panne retient ses appelants",
-        "Sans garde-fou, chaque appelant attend l'épuisement de ses tentatives. Il faut un disjoncteur pour "
+        "Sans garde-fou, chaque appelant attend l’épuisement de ses tentatives. Il faut un disjoncteur pour "
         "échouer vite — une machinerie de plus à écrire, régler et surveiller.",
         "slow_fail_ms", "Échec après épuisement des tentatives", "ms",
     ),
     _ScenarioArgument(
         "duplicate_execution", "duplicate_execution",
         "Réessayer peut exécuter deux fois",
-        "Après une erreur réseau, l'appelant ignore si l'opération a eu lieu. Rejouer une écriture non "
-        "idempotente l'applique deux fois, sauf à concevoir le serveur pour reconnaître les rejeux.",
-        "naive_executions", "Exécutions d'un seul update_stock rejoué sans clé", "exécutions",
+        "Après une erreur réseau, l’appelant ignore si l’opération a eu lieu. Rejouer une écriture non "
+        "idempotente l’applique deux fois, sauf à concevoir le serveur pour reconnaître les rejeux.",
+        "naive_executions", "Exécutions d’un seul update_stock rejoué sans clé", "exécutions",
     ),
 )
 
@@ -399,7 +399,7 @@ def _contract_coupling(contract: Results) -> dict[str, Any]:
         if silent:
             evidence += (
                 f", dont {_counted(len(silent), 'corruption silencieuse', 'corruptions silencieuses')} "
-                f"(« {silent[0]['title']} ») : l'appel réussit, les données sont fausses"
+                f"(« {silent[0]['title']} ») : l’appel réussit, les données sont fausses"
             )
         metric = _metric("Scénarios de rupture observés", len(broken), f"sur {len(contract)}")
         return _item("contract_coupling", title, text, evidence + ".", metric, "contract")
@@ -419,10 +419,10 @@ def _opaque_messages() -> dict[str, Any]:
     return _item(
         "opaque_messages",
         "Messages opaques, outillage spécifique",
-        "Un message Protobuf ne se lit pas sans son contrat : ni curl ni la console d'un navigateur ne "
+        "Un message Protobuf ne se lit pas sans son contrat : ni curl ni la console d’un navigateur ne "
         "suffisent, il faut des outils dédiés — et gRPC-Web plus un proxy pour atteindre un navigateur.",
-        "Page « Sous le capot » : les octets d'un appel gRPC ne deviennent lisibles qu'une fois décodés champ "
-        "par champ à l'aide du contrat, alors que le JSON des deux autres protocoles se lit tel quel.",
+        "Page « Sous le capot » : les octets d’un appel gRPC ne deviennent lisibles qu’une fois décodés champ "
+        "par champ à l’aide du contrat, alors que le JSON des deux autres protocoles se lit tel quel.",
     )
 
 
@@ -436,7 +436,7 @@ def _comparison(report: Report | None) -> list[dict[str, Any]]:
     row = _response_row(report)
     if row is not None:
         rows.append({
-            "criterion": "Réponse d'une fiche produit (mesurée)",
+            "criterion": "Réponse d’une fiche produit (mesurée)",
             **missing,
             "custom": fr_bytes(row.get("json_rpc_bytes")),
             "grpc": fr_bytes(row.get("grpc_bytes")),

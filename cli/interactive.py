@@ -83,15 +83,15 @@ _KIND_LABELS: dict[str, str] = {
 }
 _ARM_LABELS: dict[str, tuple[str, str]] = {
     "reset": ("Coupure", "la prochaine requête coupe la connexion sans atteindre le serveur"),
-    "lost_reply": ("Réponse perdue", "le serveur exécute la prochaine requête, mais sa réponse n'arrive jamais"),
+    "lost_reply": ("Réponse perdue", "le serveur exécute la prochaine requête, mais sa réponse n’arrive jamais"),
 }
 # Champs de NetworkConditions proposés à la saisie : (nom, libellé, booléen ?).
 _NETWORK_FIELDS: tuple[tuple[str, str, bool], ...] = (
     ("latency_ms", "Latence aller-retour (ms)", False),
     ("jitter_ms", "Gigue, en plus ou en moins (ms)", False),
-    ("spike_probability", "Probabilité qu'une requête subisse un pic (0 à 1)", False),
-    ("spike_ms", "Durée d'un pic (ms)", False),
-    ("reset_probability", "Probabilité de coupure à l'arrivée d'une requête (0 à 1)", False),
+    ("spike_probability", "Probabilité qu’une requête subisse un pic (0 à 1)", False),
+    ("spike_ms", "Durée d’un pic (ms)", False),
+    ("reset_probability", "Probabilité de coupure à l’arrivée d’une requête (0 à 1)", False),
     ("bandwidth_kbps", "Débit maximal (kbit/s, 0 = illimité)", False),
     ("blackhole", "Trou noir : les octets partent, rien ne revient", True),
     ("down", "Serveur injoignable", True),
@@ -126,7 +126,7 @@ class InteractiveSession:
             _Entry("Appels RPC", lambda: "synchrone · asynchrone × N · flux", self._calls_screen),
             _Entry("Sous le capot", self._under_the_hood_state, self._toggle_under_the_hood),
             _Entry("Visite guidée", lambda: "un appel, trois middlewares, octet par octet", self._tour_screen),
-            _Entry("Banc d'essai", lambda: "tailles, latences, local vs distant", self._benchmark_screen),
+            _Entry("Banc d’essai", lambda: "tailles, latences, local vs distant", self._benchmark_screen),
             _Entry("Laboratoire de pannes", self._network_state, self._failures_screen),
             _Entry("Laboratoire de contrat", lambda: "un client v1 face aux serveurs v2", self._contract_screen),
             _Entry("Transparence de localisation", lambda: "le même appel écrit de quatre façons",
@@ -254,7 +254,7 @@ class InteractiveSession:
             try:
                 value = int(answer) if integer else float(answer)
             except ValueError:
-                self._retry(f"« {answer} » n'est pas un nombre{' entier' if integer else ''}.")
+                self._retry(f"« {answer} » n’est pas un nombre{' entier' if integer else ''}.")
                 continue
             if minimum <= value <= maximum:
                 return value
@@ -312,7 +312,7 @@ class InteractiveSession:
                 return
             proxied = via_proxy and protocol != "local"
             if proxied:
-                note(self.console, "Réseau simulé actif : l'appel traverse le proxy de chaos.",
+                note(self.console, "Réseau simulé actif : l’appel traverse le proxy de chaos.",
                      mark=MARK_WARN, color=WARNING)
             while True:
                 self._perform(protocol, spec, params, count, via_proxy=proxied, timeout=timeout)
@@ -356,7 +356,7 @@ class InteractiveSession:
         if spec.kind != "unary":
             return 1
         index = self._pick(
-            "Mode d'appel",
+            "Mode d’appel",
             [
                 (Text("Synchrone", style="bold"), "un appel, on attend sa réponse"),
                 (Text("Asynchrone × N", style="bold"), "N appels lancés ensemble, comparés à N appels successifs"),
@@ -367,7 +367,7 @@ class InteractiveSession:
             return None
         if index == 0:
             return 1
-        return int(self._ask_number("Nombre d'appels", DEFAULT_PARALLEL_CALLS, 2, MAX_PARALLEL_CALLS, integer=True))
+        return int(self._ask_number("Nombre d’appels", DEFAULT_PARALLEL_CALLS, 2, MAX_PARALLEL_CALLS, integer=True))
 
     def _perform(
         self, protocol: str, spec: MethodSpec, params: dict[str, Any], count: int, *, via_proxy: bool,
@@ -384,7 +384,7 @@ class InteractiveSession:
             render_parallel(console, report, protocol)
             if self.under_the_hood:
                 # La mesure s'est faite bus de traces coupé : on rejoue UN appel, tracé, pour montrer le fil.
-                hint(console, "Sous le capot — les appels ci-dessus sont identiques ; voici l'un d'eux, tracé :")
+                hint(console, "Sous le capot — les appels ci-dessus sont identiques ; voici l’un d’eux, tracé :")
                 outcome = execute_call(
                     self.runtime, protocol, spec.name, params, via_proxy=via_proxy, timeout=timeout
                 )
@@ -395,7 +395,7 @@ class InteractiveSession:
             console.print(stream_item_line(rank, elapsed_ms, item, console.width))
 
         if spec.kind in STREAM_KINDS:
-            hint(console, f"{describe_call(spec.name, params)} — les éléments s'affichent à leur arrivée")
+            hint(console, f"{describe_call(spec.name, params)} — les éléments s’affichent à leur arrivée")
         with activity(console, "Appel en cours…"):
             outcome = execute_call(
                 self.runtime, protocol, spec.name, params, via_proxy=via_proxy, timeout=timeout, on_item=show_item
@@ -427,10 +427,10 @@ class InteractiveSession:
         if not self._confirm("Remettre stocks, réseau simulé, compteurs et traces dans leur état initial", True):
             return
         self.runtime.reset()
-        note(self.console, "Laboratoire réinitialisé : catalogue d'origine, réseau idéal, compteurs à zéro.")
+        note(self.console, "Laboratoire réinitialisé : catalogue d’origine, réseau idéal, compteurs à zéro.")
 
     def _dashboard_screen(self) -> None:
-        hint(self.console, "Le dashboard s'ouvre dans le navigateur ; Ctrl+C ici le ferme et ramène au menu.")
+        hint(self.console, "Le dashboard s’ouvre dans le navigateur ; Ctrl+C ici le ferme et ramène au menu.")
         try:
             code = cli_runner.run_dashboard(self.runtime, console=self.console, restart_lab=True)
         except KeyboardInterrupt:
@@ -442,13 +442,13 @@ class InteractiveSession:
 
     def _benchmark_screen(self) -> None:
         index = self._pick(
-            "Banc d'essai",
+            "Banc d’essai",
             [
                 (Text("Rapide", style="bold"),
                  f"{QUICK_CONFIG['iterations']} appels par protocole, balayage réduit — quelques secondes"),
                 (Text("Complet", style="bold"),
-                 f"{DEFAULT_CONFIG['iterations']} appels par protocole, balayage jusqu'à 200 ms — une demi-minute"),
-                (Text("Personnalisé", style="bold"), "choisir le nombre d'appels chronométrés"),
+                 f"{DEFAULT_CONFIG['iterations']} appels par protocole, balayage jusqu’à 200 ms — une demi-minute"),
+                (Text("Personnalisé", style="bold"), "choisir le nombre d’appels chronométrés"),
             ],
             default=0,
         )
@@ -493,7 +493,7 @@ class InteractiveSession:
         index = self._pick(
             "Scénario",
             [(Text(scenario["title"], style="bold"), scenario["concept"]) for scenario in SCENARIOS]
-            + [(Text("Tous les scénarios", style="bold"), "les cinq, dans l'ordre")],
+            + [(Text("Tous les scénarios", style="bold"), "les cinq, dans l’ordre")],
             default=0,
         )
         if index is None:
@@ -545,7 +545,7 @@ class InteractiveSession:
                            "appel qui le traverse.", mark=MARK_WARN, color=WARNING)
 
     def _call_through(self) -> None:
-        timeout = self._ask_number("Échéance de l'appel (s)", DEFAULT_TIMEOUT_S, 0.05, 120.0)
+        timeout = self._ask_number("Échéance de l’appel (s)", DEFAULT_TIMEOUT_S, 0.05, 120.0)
         self._call_flow(REMOTE_PROTOCOLS, via_proxy=True, timeout=timeout)
 
     def _restore_network(self) -> None:
