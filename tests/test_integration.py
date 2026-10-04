@@ -310,14 +310,14 @@ def test_connect_opens_the_connection_the_next_call_reuses_without_calling(lab: 
     else:
         client = lab.client(protocol, via_proxy=True)
     try:
-        joined = proxy.joined()
+        joined, settled = proxy.links()
         assert client.connect() is True
-        assert proxy.wait_joined(joined + 1, 2.0)                           # une connexion, reliée au serveur
+        assert proxy.wait_links(settled + 1, 2.0) == (joined + 1, settled + 1)  # une connexion, reliée au serveur
         assert [event.stage for event in events if event.call_id] == []     # rien qui ressemble à un appel
         assert lab.service.stats()["calls"] == {}
         assert client.calculate_factorial(5)["result"] == "120"
         assert client.connect() is True                                     # déjà prête : rien de plus
-        assert proxy.joined() == joined + 1                                 # l'appel a pris la connexion ouverte
+        assert proxy.links() == (joined + 1, settled + 1)                   # l'appel a pris la connexion ouverte
     finally:
         client.close()
         unsubscribe()

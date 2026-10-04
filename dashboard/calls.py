@@ -566,16 +566,18 @@ class CallService:
         if network["blackhole"] or network["down"]:
             return False
         proxy = self._runtime.proxies[client.protocol]
-        joined = proxy.joined()
+        joined, settled = proxy.links()
         deadline = time.monotonic() + _WARM_UP_TIMEOUT_S
         if not client.connect(_WARM_UP_TIMEOUT_S):
             return False
         if client.protocol == "grpc":
             return True     # canal prêt : les SETTINGS du serveur sont revenus, le trajet entier est ouvert
         # JSON-RPC et REST : la connexion est ouverte côté client dès la poignée de main TCP avec le
-        # proxy, avant qu'il l'accepte et joigne le serveur. Une connexion ouverte au même moment par
-        # un autre client peut être comptée à la place de la nôtre : on attend alors un peu moins.
-        return proxy.wait_joined(joined + 1, max(0.0, deadline - time.monotonic()))
+        # proxy, avant qu'il l'accepte et joigne le serveur. On attend que le proxy tranche : reliée,
+        # ou abandonnée (serveur injoignable). Une connexion ouverte au même moment par un autre
+        # client peut être tranchée avant la nôtre : on attend alors un peu moins.
+        now_joined, _ = proxy.wait_links(settled + 1, max(0.0, deadline - time.monotonic()))
+        return now_joined > joined
 
     # -- flux (thread dédié) ------------------------------------------------------------
 

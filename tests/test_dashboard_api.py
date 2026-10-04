@@ -26,7 +26,7 @@ from benchmark_lab.contract_evolution import CONTRACT_SCENARIOS
 from common import config
 from common.config import PROTOCOLS, REMOTE_PROTOCOLS
 from common.inventory import InventoryService
-from common.telemetry import PIPELINE, EventBus, TraceCollector
+from common.telemetry import PIPELINE, EventBus, TraceCollector, TraceEvent
 from dashboard import create_app
 from dashboard.hub import DEFAULT_TOPICS, QUEUE_LIMIT, Hub, _Subscriber, tick_rates
 from dashboard.summary import build_summary
@@ -393,15 +393,26 @@ def test_inspect_through_the_proxy_leaves_an_armed_fault_to_the_inspected_call(
 
 
 def test_inspect_through_the_proxy_opens_the_whole_path_first(runtime: LabRuntime) -> None:
-    joined = {protocol: runtime.proxies[protocol].joined() for protocol in REMOTE_PROTOCOLS}
-    with TestClient(create_app(runtime)) as fresh:      # voies neuves
-        traces = fresh.post("/api/inspect", json={**READ_PRODUCT, "via_proxy": True}).json()["traces"]
-    # Chaque connexion était reliée au serveur avant l'appel inspecté, qui ne l'a pas payée.
+    linked = ("custom", "rest")     # gRPC peut reprendre la connexion qu'un autre canal a ouverte vers le même proxy
+    joined = {protocol: runtime.proxies[protocol].links()[0] for protocol in linked}
+    at_send: dict[str, int] = {}
+
+    def on_event(event: TraceEvent) -> None:
+        # Jonctions comptées au moment où l'appel inspecté écrit son premier octet.
+        if event.stage == "client.send" and event.protocol in linked:
+            at_send.setdefault(event.protocol, runtime.proxies[event.protocol].links()[0])
+
+    unsubscribe = runtime.bus.subscribe(on_event)
+    try:
+        with TestClient(create_app(runtime)) as fresh:      # voies neuves
+            traces = fresh.post("/api/inspect", json={**READ_PRODUCT, "via_proxy": True}).json()["traces"]
+    finally:
+        unsubscribe()
     assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
         (protocol, True, False) for protocol in REMOTE_PROTOCOLS
     ]
-    for protocol in ("custom", "rest"):      # gRPC peut reprendre la connexion d'un autre canal vers le même proxy
-        assert runtime.proxies[protocol].joined() == joined[protocol] + 1
+    # La connexion était reliée au serveur AVANT que l'appel inspecté n'écrive : il n'a pas payé la jonction.
+    assert at_send == {protocol: joined[protocol] + 1 for protocol in linked}
 
 
 def test_inspect_local_call_and_validation(client: TestClient) -> None:
