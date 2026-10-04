@@ -358,24 +358,36 @@ def test_inspect_returns_the_pipeline_of_three_protocols(client: TestClient) -> 
     assert grpc["summary"]["response_bytes"] < custom["summary"]["response_bytes"]
 
 
-def test_inspect_warms_fresh_connections_without_a_trace(runtime: LabRuntime) -> None:
+def test_inspect_opens_fresh_connections_without_calling(runtime: LabRuntime) -> None:
     update = {"method": "update_stock", "params": {"product_id": PRODUCT, "delta": -1}}
     stock = runtime.service.get_product_details(PRODUCT)["stock"]
-    traced = {protocol: totals["calls"] for protocol, totals in runtime.collector.totals.items()}
-    factorials = runtime.service.stats()["calls"].get("calculate_factorial", 0)
+    calls = dict(runtime.service.stats()["calls"])
+    known = {trace.call_id for trace in runtime.collector.recent(1000)}
     with TestClient(create_app(runtime)) as fresh:      # nouvelle application : aucune connexion ouverte
         traces = fresh.post("/api/inspect", json=update).json()["traces"]
-    # Chaque voie neuve s'est échauffée hors trace : l'appel inspecté ne paie pas l'ouverture de sa connexion.
+    # Chaque voie neuve a ouvert sa connexion d'avance : l'appel inspecté ne paie pas son ouverture.
     assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
         (protocol, True, False) for protocol in REMOTE_PROTOCOLS
     ]
-    assert all(trace["summary"]["method"] == "update_stock" for trace in traces)
-    # L'échauffement n'a laissé ni trace ni effet : un débit par protocole, rien de plus.
-    assert {protocol: totals["calls"] for protocol, totals in runtime.collector.totals.items()} == {
-        protocol: traced.get(protocol, 0) + (protocol in REMOTE_PROTOCOLS) for protocol in {*traced, *REMOTE_PROTOCOLS}
-    }
+    # Ouvrir une connexion n'appelle rien : un débit par protocole, aucune autre procédure, aucune autre trace.
+    assert runtime.service.stats()["calls"] == {**calls, "update_stock": calls.get("update_stock", 0) + len(REMOTE_PROTOCOLS)}
     assert runtime.service.get_product_details(PRODUCT)["stock"] == stock - len(REMOTE_PROTOCOLS)
-    assert runtime.service.stats()["calls"]["calculate_factorial"] == factorials + len(REMOTE_PROTOCOLS)
+    added = {trace.call_id for trace in runtime.collector.recent(1000)} - known
+    assert added == {trace["call_id"] for trace in traces}
+
+
+def test_inspect_through_the_proxy_leaves_an_armed_fault_to_the_inspected_call(
+    runtime: LabRuntime, ideal_network: None
+) -> None:
+    with TestClient(create_app(runtime)) as fresh:      # voie neuve : sa connexion s'ouvre juste avant l'appel
+        armed = fresh.post("/api/network/arm", json={"kind": "reset", "protocol": "grpc", "count": 1})
+        assert armed.status_code == 200, armed.text
+        body = {**READ_PRODUCT, "protocols": ["grpc"], "via_proxy": True}
+        (trace,) = fresh.post("/api/inspect", json=body).json()["traces"]
+    # La panne visait « la prochaine requête » : c'est l'appel inspecté qui la subit, et elle est consommée.
+    assert trace["ok"] is False and trace["error"]["code"] == "UNAVAILABLE"
+    assert trace["summary"]["method"] == "get_product_details"
+    assert runtime.proxies["grpc"].armed()["reset"] == 0
 
 
 def test_inspect_local_call_and_validation(client: TestClient) -> None:

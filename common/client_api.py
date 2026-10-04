@@ -79,6 +79,17 @@ class InventoryClient(ABC):
 
     # -- cycle de vie ---------------------------------------------------------
 
+    def connect(self, timeout: float | None = None) -> bool:
+        """Ouvre la connexion au serveur sans appeler de procédure ; vrai si elle est prête.
+
+        Rien de ce qui part ne ressemble à un appel : aucune trace, aucune requête que le
+        proxy de chaos puisse couper ou retarder. L'appel suivant ne paie plus l'ouverture
+        de la connexion. ``timeout`` borne l'attente (par défaut, le délai de connexion du
+        client). Échouer ici ne lève rien : l'appel suivant montrera l'erreur réelle.
+        L'appel local n'a pas de connexion : il est toujours prêt.
+        """
+        return True
+
     def close(self) -> None:
         if self._executor is not None:
             self._executor.shutdown(wait=False, cancel_futures=True)

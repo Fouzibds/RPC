@@ -328,6 +328,9 @@ class ResilientClient(InventoryClient):
         references = list(product_ids)
         return self._stream("check_stock", lambda t: target(references, timeout=t), timeout)
 
+    def connect(self, timeout: float | None = None) -> bool:
+        return self.inner.connect(timeout)
+
     def close(self) -> None:
         self.inner.close()
         super().close()

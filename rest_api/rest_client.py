@@ -406,6 +406,20 @@ class RestInventoryClient(InventoryClient):
 
     # -- connexions -----------------------------------------------------------------
 
+    def connect(self, timeout: float | None = None) -> bool:
+        """Ouvre la connexion persistante du thread appelant, celle que ses appels suivants utiliseront."""
+        connection = self._connection()
+        if connection.sock is not None and not _hung_up(connection.sock):
+            return True
+        connection.close()
+        connection.timeout = self.connect_timeout if timeout is None else min(self.connect_timeout, timeout)
+        try:
+            connection.connect()
+        except OSError:
+            connection.close()
+            return False
+        return True
+
     def _connection(self) -> _Connection:
         """Connexion persistante du thread courant, remplacée après un ``close()`` du client."""
         connection: _Connection | None = getattr(self._local, "connection", None)

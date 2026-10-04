@@ -299,7 +299,7 @@ python -m playwright install chromium   # seulement si Edge est absent (Linux, m
 
 ## En cas de difficulté
 
-- **« Le laboratoire n'a pas pu démarrer »** : un port est occupé. Fermez l'autre
+- **« Le laboratoire n’a pas pu démarrer »** : un port est occupé. Fermez l'autre
   instance, ou décalez les ports avec `RPCX_PORT_OFFSET` (voir plus haut).
 - **Un contrat `.proto` a été modifié** : relancez `python -m rpc_grpc.generate`
   (`main.py` le fait de lui-même quand le code généré est plus ancien que le contrat).

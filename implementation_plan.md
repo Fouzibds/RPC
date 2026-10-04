@@ -118,9 +118,11 @@ RPC/
   **exactement** les clés des messages Protobuf.
 - `catalog.py` — `METHODS` (`MethodSpec`/`ParamSpec`), `CORE_METHODS`, `catalog_dict()`.
 - `client_api.py` — `InventoryClient` (ABC) : `calculate_factorial`, `get_product_details`,
-  `update_stock`, `list_products`, `stream_analytics`, `invoke()`, `submit()`, `close()`.
-  **Toutes les implémentations renvoient des dictionnaires de forme identique** et lèvent des
-  `RpcError`. Chaque appel affecte `self.last_call_id`.
+  `update_stock`, `list_products`, `stream_analytics`, `invoke()`, `submit()`, `connect()`,
+  `close()`. **Toutes les implémentations renvoient des dictionnaires de forme identique** et
+  lèvent des `RpcError`. Chaque appel affecte `self.last_call_id`. `connect(timeout=None) -> bool`
+  ouvre la connexion sans appeler de procédure (ni trace, ni requête pour le proxy de chaos) :
+  le dashboard s'en sert avant une inspection pour que l'appel inspecté ne paie pas l'ouverture.
 - `telemetry.py` — voir §5.
 
 Règles communes à tout le code :

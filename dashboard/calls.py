@@ -46,10 +46,7 @@ MAX_BASE_DELAY_MS = 10_000
 
 _RESULT_STREAMS: frozenset[str] = frozenset({"server_stream", "bidi_stream"})   # le résultat est un itérateur
 
-# Appel d'échauffement d'une inspection : servi par tous les protocoles, sans effet sur l'inventaire.
-_WARM_UP_METHOD = "calculate_factorial"
-_WARM_UP_PARAMS: dict[str, Any] = {"n": 1}
-_WARM_UP_TIMEOUT_S = 2.0    # sous un réseau dégradé, l'échauffement ne doit pas doubler l'attente
+_WARM_UP_TIMEOUT_S = 2.0    # ouverture de connexion avant une inspection : au-delà, l'appel inspecté la paiera
 _STREAM_METHODS = ", ".join(spec.name for spec in METHODS if spec.kind != "unary")
 
 # Comment chaque protocole mène plusieurs appels de front : la réponse n'est pas la même, et c'est instructif.
@@ -533,9 +530,7 @@ class CallService:
     # -- inspection (thread de la voie) -----------------------------------------------
 
     def _run_inspection(self, request: InspectRequest, lane: _Lane) -> dict[str, Any]:
-        if lane.cold:
-            self._warm_up(lane)
-        cold = lane.cold            # encore vrai si l'échauffement a perdu sa connexion
+        cold = lane.cold and not self._warm_up(lane, request.via_proxy)
         client = lane.client
         outcome = _invoke(client, client, request.method, request.params, None)
         if isinstance(outcome.error, RpcTransportError):
@@ -551,21 +546,23 @@ class CallService:
             **trace_payload(trace),
         }
 
-    def _warm_up(self, lane: _Lane) -> None:
-        """Ouvre la connexion de la voie par un appel non tracé, juste avant l'appel inspecté.
+    def _warm_up(self, lane: _Lane, via_proxy: bool) -> bool:
+        """Ouvre d'avance la connexion d'une voie neuve, sans appeler de procédure ; vrai si elle l'est.
 
-        Sans lui, l'inspection d'une voie neuve paierait l'ouverture de la connexion (pour gRPC,
-        l'établissement du canal HTTP/2) : plusieurs millisecondes qu'un seul protocole subirait,
-        et la comparaison des trois serait faussée. Bus coupé : ni trace, ni compteur, ni
-        message sur le WebSocket.
+        Sans cela, l'inspection d'une voie neuve paierait l'ouverture de la connexion (pour
+        gRPC, l'établissement du canal HTTP/2) : plusieurs millisecondes qu'un seul protocole
+        subirait, et la comparaison des trois serait faussée. Aucun appel n'est émis : le bus
+        de traces reste actif pour les autres appels, et une panne armée sur le proxy attend
+        l'appel inspecté. Réseau en trou noir ou en panne : l'inspection montrera l'échec,
+        inutile d'attendre une connexion qui ne viendra pas. Si la connexion ne s'ouvre pas,
+        rien n'est fait de plus : l'appel inspecté montrera l'erreur réelle, et la voie sera
+        renouvelée comme après toute erreur de transport.
         """
-        client = lane.client
-        if client.protocol == "local":
-            return
-        with self._runtime.bus.muted():
-            outcome = _invoke(client, client, _WARM_UP_METHOD, _WARM_UP_PARAMS, _WARM_UP_TIMEOUT_S)
-        if isinstance(outcome.error, RpcTransportError):
-            lane.renew()
+        if via_proxy:
+            network = self._runtime.conditions.snapshot()
+            if network["blackhole"] or network["down"]:
+                return False
+        return lane.client.connect(_WARM_UP_TIMEOUT_S)
 
     # -- flux (thread dédié) ------------------------------------------------------------
 

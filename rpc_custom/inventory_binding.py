@@ -20,7 +20,7 @@ from typing import Any, Iterator
 from common.catalog import METHODS, method_spec
 from common.client_api import InventoryClient
 from common.config import DEFAULT_TIMEOUT_S, HOST
-from common.errors import InvalidArgument
+from common.errors import InvalidArgument, RpcTransportError
 from common.inventory import InventoryService
 from common.telemetry import BUS, EventBus
 
@@ -127,6 +127,14 @@ class CustomInventoryClient(InventoryClient):
         stream = self.stub.stream("stream_analytics", timeout=timeout, samples=samples, interval_ms=interval_ms)
         self.last_call_id = self.stub.last_call_id
         return stream
+
+    def connect(self, timeout: float | None = None) -> bool:
+        """Ouvre la connexion TCP du stub (dans son délai de connexion ; ``timeout`` est ignoré)."""
+        try:
+            self.stub.connect()
+        except RpcTransportError:
+            return False
+        return True
 
     def submit(self, method: str, params: dict[str, Any] | None = None, *, timeout: float | None = None) -> Future:
         """Appel asynchrone réellement multiplexé : la requête part tout de suite, sur la connexion partagée.
