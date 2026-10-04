@@ -411,8 +411,10 @@ def test_inspect_through_the_proxy_opens_the_whole_path_first(runtime: LabRuntim
     assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
         (protocol, True, False) for protocol in REMOTE_PROTOCOLS
     ]
-    # La connexion était reliée au serveur AVANT que l'appel inspecté n'écrive : il n'a pas payé la jonction.
+    # La connexion était reliée au serveur AVANT que l'appel inspecté n'écrive : il n'a pas payé la jonction…
     assert at_send == {protocol: joined[protocol] + 1 for protocol in linked}
+    # … et c'est bien celle-là qu'il a prise : aucune autre connexion ne s'est ouverte.
+    assert {protocol: runtime.proxies[protocol].links()[0] for protocol in linked} == at_send
 
 
 def test_inspect_local_call_and_validation(client: TestClient) -> None:
