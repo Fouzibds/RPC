@@ -66,11 +66,20 @@ export function ConditionsPanel(ctx) {
   const faults = FaultArming({ onArm: (kind, id, count) => arm(kind, id, count) });
   const customBadge = Badge({ label: 'Personnalisé', tone: 'accent', size: 'sm' });
   customBadge.hidden = true;
-  const resetButton = Button({ label: 'Réinitialiser', icon: 'rotate-ccw', variant: 'ghost', size: 'sm', title: 'Revenir au réseau idéal et désarmer les pannes', onClick: () => reset() });
+  // Bouton-icône : dans une colonne de 300 px, un libellé ferait passer le titre de la carte sur deux lignes.
+  const resetButton = Button({
+    icon: 'rotate-ccw',
+    variant: 'ghost',
+    size: 'sm',
+    class: 'btn--icon',
+    ariaLabel: 'Réinitialiser le réseau',
+    title: 'Réinitialiser : réseau idéal, pannes désarmées',
+    onClick: () => reset(),
+  });
   const busyNote = h('div.chaos-busy', { hidden: true });
   const body = h('div');
   const el = Card(
-    { title: 'Conditions réseau', subtitle: 'Communes aux trois proxys', icon: 'sliders-horizontal', actions: [customBadge, resetButton], class: 'chaos-card chaos-card--conditions' },
+    { title: 'Conditions réseau', subtitle: 'Communes aux trois proxys', icon: 'sliders-horizontal', actions: resetButton, class: 'chaos-card chaos-card--conditions' },
     busyNote,
     body,
   );
@@ -234,7 +243,7 @@ export function ConditionsPanel(ctx) {
       body,
       h(
         'div.chaos-cond',
-        h('div.chaos-cond__group', h('div.t-label', 'Préréglages'), h('div.chaos-presets', { role: 'group', 'aria-label': 'Préréglages réseau' }, presets.map(presetTile))),
+        h('div.chaos-cond__group', h('div.chaos-cond__head', h('div.t-label', 'Préréglages'), customBadge), h('div.chaos-presets', { role: 'group', 'aria-label': 'Préréglages réseau' }, presets.map(presetTile))),
         h('div.chaos-cond__group', h('div.t-label', 'Réglages fins'), h('div.chaos-sliders', SLIDERS.map(sliderField))),
         h('div.chaos-cond__group', h('div.t-label', 'Pannes franches'), h('div.chaos-switches', SWITCHES.map(switchTile))),
         h('div.chaos-cond__group', h('div.t-label', 'Pannes ponctuelles'), faults.el),
