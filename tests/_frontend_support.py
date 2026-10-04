@@ -4,7 +4,8 @@
   thread, sur un port choisi par le système ;
 * ``PageWatch`` — note tout ce qui ne devrait pas arriver dans une page : erreur de console,
   exception JavaScript, requête en échec, réponse HTTP ≥ 400 ;
-* ``launch_edge`` — Microsoft Edge sans interface, piloté par Playwright ;
+* ``launch_browser`` — Microsoft Edge sans interface piloté par Playwright, ou à défaut le
+  Chromium fourni avec Playwright (machines Linux, intégration continue) ;
 * ``lingering_threads`` — les threads qui auraient survécu à l'arrêt du laboratoire.
 
 Ce module importe Playwright : le fichier de tests ne le charge qu'après
@@ -47,15 +48,21 @@ _CANCELLED = "net::ERR_ABORTED"
 
 
 class BrowserUnavailable(RuntimeError):
-    """Microsoft Edge ne peut pas être lancé sur cette machine."""
+    """Ni Microsoft Edge ni le Chromium de Playwright ne peuvent être lancés sur cette machine."""
 
 
-def launch_edge(playwright: Playwright) -> Browser:
-    """Lance Microsoft Edge sans interface ; lève ``BrowserUnavailable`` s'il est absent ou inutilisable."""
-    try:
-        return playwright.chromium.launch(channel="msedge", headless=True)
-    except PlaywrightError as exc:
-        raise BrowserUnavailable(str(exc).splitlines()[0]) from exc
+def launch_browser(playwright: Playwright) -> Browser:
+    """Lance Edge sans interface, sinon le Chromium de Playwright ; lève ``BrowserUnavailable`` si aucun ne démarre.
+
+    Edge est présent sur tout Windows récent ; ailleurs, ``playwright install chromium`` suffit.
+    """
+    failures = []
+    for channel in ("msedge", None):
+        try:
+            return playwright.chromium.launch(channel=channel, headless=True)
+        except PlaywrightError as exc:
+            failures.append(f"{channel or 'chromium'} : {str(exc).splitlines()[0]}")
+    raise BrowserUnavailable(" ; ".join(failures))
 
 
 class LiveDashboard:
@@ -87,7 +94,7 @@ class LiveDashboard:
         while not self._server.started:
             if not self._thread.is_alive() or time.monotonic() > deadline:
                 self._listener.close()
-                raise RuntimeError("Le dashboard de test n'a pas démarré (uvicorn s'est arrêté ou ne répond pas).")
+                raise RuntimeError("Le dashboard de test n’a pas démarré (uvicorn s’est arrêté ou ne répond pas).")
             time.sleep(0.02)
         return self
 
@@ -96,12 +103,12 @@ class LiveDashboard:
         self._thread.join(SHUTDOWN_PATIENCE_S)
         self._listener.close()
         if self._thread.is_alive():
-            raise RuntimeError("Le thread du dashboard de test ne s'est pas arrêté.")
+            raise RuntimeError("Le thread du dashboard de test ne s’est pas arrêté.")
         try:
             # Reprendre le port prouve que plus personne n'y écoute.
             socket.create_server((self.runtime.host, self.port)).close()
         except OSError as exc:
-            raise RuntimeError(f"Le port {self.port} du dashboard de test n'a pas été libéré.") from exc
+            raise RuntimeError(f"Le port {self.port} du dashboard de test n’a pas été libéré.") from exc
 
     def api(self, method: str, path: str, body: Any = None) -> Any:
         """Appelle l'API du dashboard hors du navigateur et renvoie le JSON décodé (``HTTPError`` si ≥ 400)."""
@@ -176,4 +183,4 @@ def lingering_threads(known: set[threading.Thread]) -> list[str]:
         time.sleep(0.05)
 
 
-__all__ = ["BrowserUnavailable", "LiveDashboard", "PageWatch", "launch_edge", "lingering_threads"]
+__all__ = ["BrowserUnavailable", "LiveDashboard", "PageWatch", "launch_browser", "lingering_threads"]

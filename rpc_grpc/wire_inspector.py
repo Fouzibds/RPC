@@ -117,7 +117,7 @@ def _read_varint(data: bytes, pos: int, end: int) -> tuple[int, int]:
     start, result, shift = pos, 0, 0
     while True:
         if pos >= end:
-            raise ValueError(f"Varint tronqué à l'offset {start}")
+            raise ValueError(f"Varint tronqué à l’offset {start}")
         byte = data[pos]
         pos += 1
         result |= (byte & 0x7F) << shift
@@ -125,7 +125,7 @@ def _read_varint(data: bytes, pos: int, end: int) -> tuple[int, int]:
             return result & _MASK64, pos
         shift += 7
         if shift >= 70:
-            raise ValueError(f"Varint de plus de 10 octets à l'offset {start}")
+            raise ValueError(f"Varint de plus de 10 octets à l’offset {start}")
 
 
 def _scan(data: bytes, start: int, end: int) -> Iterator[_RawField]:
@@ -135,7 +135,7 @@ def _scan(data: bytes, start: int, end: int) -> Iterator[_RawField]:
         tag, tag_end = _read_varint(data, pos, end)
         number, wire_type = tag >> 3, tag & 0x07
         if not 1 <= number <= _MAX_FIELD_NUMBER:
-            raise ValueError(f"Numéro de champ invalide ({number}) à l'offset {pos}")
+            raise ValueError(f"Numéro de champ invalide ({number}) à l’offset {pos}")
         if wire_type == VARINT:
             value, value_end = _read_varint(data, tag_end, end)
             field = _RawField(number, wire_type, pos, tag_end, tag_end, value_end, value)
@@ -143,7 +143,7 @@ def _scan(data: bytes, start: int, end: int) -> Iterator[_RawField]:
             length, value_start = _read_varint(data, tag_end, end)
             if length > end - value_start:
                 raise ValueError(
-                    f"Champ {number} à l'offset {pos} : {length} octets annoncés, "
+                    f"Champ {number} à l’offset {pos} : {length} octets annoncés, "
                     f"{end - value_start} disponibles"
                 )
             field = _RawField(number, wire_type, pos, tag_end, value_start, value_start + length, length)
@@ -151,12 +151,12 @@ def _scan(data: bytes, start: int, end: int) -> Iterator[_RawField]:
             value_end = tag_end + _FIXED_SIZES[wire_type]
             if value_end > end:
                 raise ValueError(
-                    f"Champ {number} à l'offset {pos} : valeur {WIRE_TYPE_NAMES[wire_type]} tronquée"
+                    f"Champ {number} à l’offset {pos} : valeur {WIRE_TYPE_NAMES[wire_type]} tronquée"
                 )
             field = _RawField(number, wire_type, pos, tag_end, tag_end, value_end, 0)
         else:
             raise ValueError(
-                f"Type de fil {wire_type} non pris en charge à l'offset {pos} "
+                f"Type de fil {wire_type} non pris en charge à l’offset {pos} "
                 "(groupes obsolètes ou octets corrompus)"
             )
         yield field

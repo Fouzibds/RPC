@@ -282,7 +282,7 @@ def _latency_caption(latency: Mapping[str, Any]) -> str:
     return (
         f"{latency.get('method', '')} · {fr_number(latency.get('iterations'))} appels par protocole · "
         f"{fr_number(clients)} client{'s' if clients > 1 else ''} · {route} · bus de traces coupé · "
-        f"{fr_number(latency.get('warmup'))} appels d'échauffement"
+        f"{fr_number(latency.get('warmup'))} appels d’échauffement"
     )
 
 
@@ -409,7 +409,7 @@ def _network_section(console: Console, network: Mapping[str, Any]) -> None:
     table = make_table(
         "Local vs distant : temps moyen par appel (ms) selon la latence du réseau",
         caption=f"{network.get('method', '')} · {fr_number(network.get('iterations'))} appels par point · les "
-                "protocoles distants traversent le proxy de chaos, l'appel local n'emprunte aucun réseau.",
+                "protocoles distants traversent le proxy de chaos, l’appel local n’emprunte aucun réseau.",
     )
     console.print(fill_table(table, columns, cells, narrow=narrow))
 
@@ -482,7 +482,7 @@ def render_report(console: Console, report: Mapping[str, Any]) -> None:
     latency = report.get("latency")
     if latency:
         number += 1
-        section(console, "Ce que coûte un appel", "La même boucle d'appels, protocole après protocole.",
+        section(console, "Ce que coûte un appel", "La même boucle d’appels, protocole après protocole.",
                 number=number)
         _latency_section(console, latency)
     serialization = report.get("serialization")

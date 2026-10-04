@@ -299,7 +299,7 @@ class RestInventoryClient(InventoryClient):
         """Écrit la requête en un seul envoi, puis attend la ligne de statut et les en-têtes."""
         if call.timeout <= 0:
             raise RpcTimeoutError(
-                f"Délai de {call.timeout:g} s déjà écoulé : l'appel n'a pas été envoyé",
+                f"Délai de {call.timeout:g} s déjà écoulé : l’appel n’a pas été envoyé",
                 protocol=PROTOCOL, method=call.method, detail={"timeout_s": call.timeout},
             )
         if connection.sock is not None and _hung_up(connection.sock):
@@ -399,12 +399,26 @@ class RestInventoryClient(InventoryClient):
             raise
         except GeneratorExit:
             if trace:
-                trace.finish("client.error", detail={"code": CANCELLED, "message": "Flux abandonné par l'appelant"})
+                trace.finish("client.error", detail={"code": CANCELLED, "message": "Flux abandonné par l’appelant"})
             raise
         finally:
             self._release(connection)
 
     # -- connexions -----------------------------------------------------------------
+
+    def connect(self, timeout: float | None = None) -> bool:
+        """Ouvre la connexion persistante du thread appelant, celle que ses appels suivants utiliseront."""
+        connection = self._connection()
+        if connection.sock is not None and not _hung_up(connection.sock):
+            return True
+        connection.close()
+        connection.timeout = self.connect_timeout if timeout is None else min(self.connect_timeout, timeout)
+        try:
+            connection.connect()
+        except OSError:
+            connection.close()
+            return False
+        return True
 
     def _connection(self) -> _Connection:
         """Connexion persistante du thread courant, remplacée après un ``close()`` du client."""
@@ -455,7 +469,7 @@ class RestInventoryClient(InventoryClient):
         peer = f"{self.host}:{self.port}"
         if isinstance(exc, TimeoutError):
             return RpcTimeoutError(
-                f"Aucune réponse de {peer} en {call.timeout:g} s : l'issue de l'appel est inconnue",
+                f"Aucune réponse de {peer} en {call.timeout:g} s : l’issue de l’appel est inconnue",
                 protocol=PROTOCOL, method=call.method, detail={"timeout_s": call.timeout},
             )
         cause = type(exc).__name__
@@ -468,7 +482,7 @@ class RestInventoryClient(InventoryClient):
                 protocol=PROTOCOL, method=call.method, detail={"cause": cause},
             )
         return RpcTransportError(
-            f"Connexion à {peer} interrompue pendant l'appel ({cause})",
+            f"Connexion à {peer} interrompue pendant l’appel ({cause})",
             protocol=PROTOCOL, method=call.method, detail={"phase": "exchange", "cause": cause},
         )
 

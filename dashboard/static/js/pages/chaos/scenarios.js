@@ -76,7 +76,10 @@ export function Scenarios(ctx, hooks) {
   function cardState(scenario) {
     if (running?.id === scenario.id) return { state: 'running', badge: Badge({ label: 'En cours', tone: 'accent', dot: true, pulse: true, size: 'sm' }) };
     if (failures[scenario.id]) return { state: 'error', badge: Badge({ label: 'Échec', tone: 'danger', size: 'sm' }) };
-    if (results[scenario.id]) return { state: 'done', badge: Badge({ label: `Joué · ${protocol(results[scenario.id].protocol).short}`, tone: 'success', size: 'sm', icon: 'check' }) };
+    if (results[scenario.id]) {
+      const played = protocol(results[scenario.id].protocol);
+      return { state: 'done', badge: Badge({ label: `Joué · ${played.short}`, title: `Joué avec ${played.label}`, tone: 'success', size: 'sm', icon: 'check' }) };
+    }
     return { state: 'idle', badge: Badge({ label: 'Jamais joué', tone: 'neutral', size: 'sm' }) };
   }
 
@@ -86,6 +89,8 @@ export function Scenarios(ctx, hooks) {
       const scenario = scenarios.find((item) => item.id === id);
       const view = cardState(scenario);
       card.el.dataset.state = view.state;
+      // Une fois joué, la durée réelle est dans le détail : l'estimation cède sa place au badge.
+      card.duration.hidden = view.state === 'done';
       card.el.dataset.selected = String(selected === id);
       card.select.setAttribute('aria-pressed', String(selected === id));
       clear(card.status, view.badge);
@@ -105,6 +110,7 @@ export function Scenarios(ctx, hooks) {
       h('span.chaos-scen__icon', { 'aria-hidden': 'true' }, icon(hasIcon(scenario.icon) ? scenario.icon : 'flask-conical', { size: 16 })),
       h('span.chaos-scen__heading', h('span.chaos-scen__title', scenario.title), h('span.chaos-scen__concept', scenario.concept)),
     );
+    const duration = h('span.chaos-scen__duration', icon('timer', { size: 12 }), h('span.num', `≈ ${fmtDuration(scenario.duration_hint_s)}`));
     const status = h('span.chaos-scen__status');
     const run = Button({ label: 'Lancer', icon: 'play', size: 'sm', onClick: () => start(scenario.id) });
     const card = h(
@@ -112,9 +118,9 @@ export function Scenarios(ctx, hooks) {
       { dataset: { state: 'idle', selected: 'false' } },
       select,
       h('p.chaos-scen__summary', { title: scenario.summary }, scenario.summary),
-      h('div.chaos-scen__foot', h('span.chaos-scen__duration', icon('timer', { size: 12 }), h('span.num', `≈ ${fmtDuration(scenario.duration_hint_s)}`)), status, run),
+      h('div.chaos-scen__foot', duration, status, run),
     );
-    cards.set(scenario.id, { el: card, select, status, run });
+    cards.set(scenario.id, { el: card, select, duration, status, run });
     return card;
   }
 

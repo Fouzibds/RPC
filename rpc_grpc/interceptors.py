@@ -45,8 +45,8 @@ _PYTHON_NAMES = {spec.grpc_method: spec.name for spec in METHODS}
 _RESPONSE_HEADERS = {":status": "200", "content-type": "application/grpc"}
 _OK_TRAILERS = {"grpc-status": "0"}
 _TRANSPORT_NOTE = (
-    "L'écriture sur la connexion HTTP/2 est faite par le cœur C de gRPC : la durée "
-    "mesurée ici est celle du tramage ; l'aller-retour réseau est compté dans la réception."
+    "L’écriture sur la connexion HTTP/2 est faite par le cœur C de gRPC : la durée "
+    "mesurée ici est celle du tramage ; l’aller-retour réseau est compté dans la réception."
 )
 _CLIENT_GONE = "Appel abandonné par le client (annulation ou échéance dépassée)"
 

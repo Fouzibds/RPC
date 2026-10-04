@@ -26,7 +26,7 @@ from benchmark_lab.contract_evolution import CONTRACT_SCENARIOS
 from common import config
 from common.config import PROTOCOLS, REMOTE_PROTOCOLS
 from common.inventory import InventoryService
-from common.telemetry import PIPELINE, EventBus, TraceCollector
+from common.telemetry import PIPELINE, EventBus, TraceCollector, TraceEvent
 from dashboard import create_app
 from dashboard.hub import DEFAULT_TOPICS, QUEUE_LIMIT, Hub, _Subscriber, tick_rates
 from dashboard.summary import build_summary
@@ -109,7 +109,7 @@ def wait_for_job(client: TestClient, job_id: str) -> Message:
         if job["state"] != "running":
             return job
         time.sleep(0.05)
-    raise AssertionError(f"la tâche {job_id} ne s'est pas terminée en {JOB_PATIENCE_S} s")
+    raise AssertionError(f"la tâche {job_id} ne s’est pas terminée en {JOB_PATIENCE_S} s")
 
 
 def error_of(response: Any, status: int) -> Message:
@@ -358,6 +358,65 @@ def test_inspect_returns_the_pipeline_of_three_protocols(client: TestClient) -> 
     assert grpc["summary"]["response_bytes"] < custom["summary"]["response_bytes"]
 
 
+def test_inspect_opens_fresh_connections_without_calling(runtime: LabRuntime) -> None:
+    update = {"method": "update_stock", "params": {"product_id": PRODUCT, "delta": -1}}
+    stock = runtime.service.get_product_details(PRODUCT)["stock"]
+    calls = dict(runtime.service.stats()["calls"])
+    known = {trace.call_id for trace in runtime.collector.recent(1000)}
+    with TestClient(create_app(runtime)) as fresh:      # nouvelle application : aucune connexion ouverte
+        traces = fresh.post("/api/inspect", json=update).json()["traces"]
+    # Chaque voie neuve a ouvert sa connexion d'avance : l'appel inspecté ne paie pas son ouverture.
+    assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
+        (protocol, True, False) for protocol in REMOTE_PROTOCOLS
+    ]
+    # Ouvrir une connexion n'appelle rien : un débit par protocole, aucune autre procédure, aucune autre trace.
+    debits = calls.get("update_stock", 0) + len(REMOTE_PROTOCOLS)
+    assert runtime.service.stats()["calls"] == {**calls, "update_stock": debits}
+    assert runtime.service.get_product_details(PRODUCT)["stock"] == stock - len(REMOTE_PROTOCOLS)
+    added = {trace.call_id for trace in runtime.collector.recent(1000)} - known
+    assert added == {trace["call_id"] for trace in traces}
+
+
+def test_inspect_through_the_proxy_leaves_an_armed_fault_to_the_inspected_call(
+    runtime: LabRuntime, ideal_network: None
+) -> None:
+    with TestClient(create_app(runtime)) as fresh:      # voie neuve : sa connexion s'ouvre juste avant l'appel
+        armed = fresh.post("/api/network/arm", json={"kind": "reset", "protocol": "grpc", "count": 1})
+        assert armed.status_code == 200, armed.text
+        body = {**READ_PRODUCT, "protocols": ["grpc"], "via_proxy": True}
+        (trace,) = fresh.post("/api/inspect", json=body).json()["traces"]
+    # La panne visait « la prochaine requête » : c'est l'appel inspecté qui la subit, et elle est consommée,
+    # bien que la connexion ait été ouverte avant lui.
+    assert trace["ok"] is False and trace["error"]["code"] == "UNAVAILABLE" and trace["cold"] is False
+    assert trace["summary"]["method"] == "get_product_details"
+    assert runtime.proxies["grpc"].armed()["reset"] == 0
+
+
+def test_inspect_through_the_proxy_opens_the_whole_path_first(runtime: LabRuntime) -> None:
+    linked = ("custom", "rest")     # gRPC peut reprendre la connexion qu'un autre canal a ouverte vers le même proxy
+    joined = {protocol: runtime.proxies[protocol].links()[0] for protocol in linked}
+    at_send: dict[str, int] = {}
+
+    def on_event(event: TraceEvent) -> None:
+        # Jonctions comptées au moment où l'appel inspecté écrit son premier octet.
+        if event.stage == "client.send" and event.protocol in linked:
+            at_send.setdefault(event.protocol, runtime.proxies[event.protocol].links()[0])
+
+    unsubscribe = runtime.bus.subscribe(on_event)
+    try:
+        with TestClient(create_app(runtime)) as fresh:      # voies neuves
+            traces = fresh.post("/api/inspect", json={**READ_PRODUCT, "via_proxy": True}).json()["traces"]
+    finally:
+        unsubscribe()
+    assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
+        (protocol, True, False) for protocol in REMOTE_PROTOCOLS
+    ]
+    # La connexion était reliée au serveur AVANT que l'appel inspecté n'écrive : il n'a pas payé la jonction…
+    assert at_send == {protocol: joined[protocol] + 1 for protocol in linked}
+    # … et c'est bien celle-là qu'il a prise : aucune autre connexion ne s'est ouverte.
+    assert {protocol: runtime.proxies[protocol].links()[0] for protocol in linked} == at_send
+
+
 def test_inspect_local_call_and_validation(client: TestClient) -> None:
     body = {**READ_PRODUCT, "protocols": ["local", "rest"]}
     local, rest = client.post("/api/inspect", json=body).json()["traces"]
@@ -487,7 +546,7 @@ def test_lab_is_busy_while_a_benchmark_runs(client: TestClient, monkeypatch: pyt
         progress("latency", 0.5, "Mesure en cours", {"latency": {"results": []}})
         started.set()
         assert release.wait(JOB_PATIENCE_S)
-        raise RuntimeError("banc d'essai interrompu par le test")
+        raise RuntimeError("banc d’essai interrompu par le test")
 
     monkeypatch.setattr("dashboard.jobs.run_full_benchmark", stalled_benchmark)
     job_id = client.post("/api/benchmark/run", json={"quick": True}).json()["job_id"]
@@ -513,7 +572,7 @@ def test_lab_is_busy_while_a_benchmark_runs(client: TestClient, monkeypatch: pyt
         release.set()
     failed = wait_for_job(client, job_id)
     assert failed["state"] == "error" and failed["result"] is None
-    assert failed["error"] == {"code": "FAILED_PRECONDITION", "message": "banc d'essai interrompu par le test"}
+    assert failed["error"] == {"code": "FAILED_PRECONDITION", "message": "banc d’essai interrompu par le test"}
     assert client.get("/api/status").json()["job"] is None
 
 
@@ -933,7 +992,7 @@ def test_missing_interface_gets_a_french_fallback_page(runtime: LabRuntime, tmp_
     with TestClient(create_app(runtime, static_dir=tmp_path / "absent")) as bare:
         page = bare.get("/")
         assert page.status_code == 200 and page.headers["content-type"].startswith("text/html")
-        assert "n'est pas encore construite" in page.text and 'lang="fr"' in page.text
+        assert "n’est pas encore construite" in page.text and 'lang="fr"' in page.text
         assert page.headers["cache-control"] == "no-store"
         assert bare.get("/api/health").json()["status"] == "ok"      # l'API ne dépend pas de l'interface
         error_of(bare.get("/js/app.js"), 404)
@@ -944,7 +1003,7 @@ def test_static_files_are_served_after_the_api_and_never_cached(runtime: LabRunt
     (tmp_path / "index.html").write_text("<!doctype html><title>Interface de test</title>", encoding="utf-8")
     (tmp_path / "js" / "app.js").write_text("export const ready = true;\n", encoding="utf-8")
     (tmp_path / "api").mkdir()
-    (tmp_path / "api" / "health").write_text("masqué par la route de l'API", encoding="utf-8")
+    (tmp_path / "api" / "health").write_text("masqué par la route de l’API", encoding="utf-8")
     with TestClient(create_app(runtime, static_dir=tmp_path)) as site:
         index = site.get("/")
         assert "Interface de test" in index.text and index.headers["cache-control"] == "no-store"

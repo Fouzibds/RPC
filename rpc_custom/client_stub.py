@@ -234,7 +234,7 @@ class RpcClientStub:
             self._wakeup.notify_all()
         threads = [watchdog]
         if conn is not None:
-            self._drop_connection(conn, RpcTransportError, "Stub fermé avant l'arrivée de la réponse")
+            self._drop_connection(conn, RpcTransportError, "Stub fermé avant l’arrivée de la réponse")
             threads.append(conn.reader)
         for thread in threads:
             if thread is not None and thread is not threading.current_thread():
@@ -519,7 +519,7 @@ class RpcClientStub:
                 self._fail(call, self._error(
                     RpcTimeoutError,
                     f"Pas de réponse à {call.future.method} après {_seconds(call.timeout)} : "
-                    "l'issue de l'appel est inconnue",
+                    "l’issue de l’appel est inconnue",
                     call,
                 ))
 

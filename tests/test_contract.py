@@ -302,7 +302,7 @@ def test_diff_engine_classifies_changes_absent_from_the_lab_contracts() -> None:
     }
     # Le sens de circulation décide du récit : « Req » est écrit par le client, « Rep » par le serveur.
     assert changes["field_removed_req_3"]["wire_effect"].startswith("Un client v1 envoie")
-    assert changes["field_removed_rep_2"]["wire_effect"].startswith("Le serveur v2 n'écrit plus")
+    assert changes["field_removed_rep_2"]["wire_effect"].startswith("Le serveur v2 n’écrit plus")
     assert contract.diff_contracts(old, old) == []
 
 
@@ -527,7 +527,7 @@ def test_cli_prints_changes_scenarios_and_rules(capsys: pytest.CaptureFixture[st
     assert contract.main([]) == 0
     output = capsys.readouterr().out
     for expected in ("RUPTURE", "CORRUPTION SILENCIEUSE", "PLANTAGE DU CLIENT", "REJET EXPLICITE", "COMPATIBLE",
-                     "Règles d'or", "deux lectures", "Bilan"):
+                     "Règles d’or", "deux lectures", "Bilan"):
         assert expected in output, expected
     assert "INATTENDU" not in output
     # Les messages JSON-RPC sont abrégés à la largeur de la console ; leurs libellés, jamais.

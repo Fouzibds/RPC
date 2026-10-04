@@ -315,7 +315,7 @@ class LabRuntime:
             f"Démarrage du laboratoire impossible : {_COMPONENT_LABELS[name]} ne peut pas écouter sur "
             f"{self.host}:{port}. Le port {port} est déjà utilisé par un autre programme (peut-être une autre "
             f"instance du laboratoire) ou réservé par le système. Libérez-le, ou décalez tous les ports du "
-            f"laboratoire avec la variable d'environnement RPCX_PORT_OFFSET (par exemple "
+            f"laboratoire avec la variable d’environnement RPCX_PORT_OFFSET (par exemple "
             f"RPCX_PORT_OFFSET={PORT_OFFSET_STEP})."
         )
 
@@ -323,7 +323,7 @@ class LabRuntime:
         port = getattr(self.ports, name)
         if not port:
             raise RuntimeError(
-                "Le laboratoire n'est pas démarré : ses ports éphémères ne sont attribués que par start()."
+                "Le laboratoire n’est pas démarré : ses ports éphémères ne sont attribués que par start()."
             )
         return port
 

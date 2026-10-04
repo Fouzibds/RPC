@@ -195,7 +195,7 @@ class RpcServerSkeleton:
             except OSError as exc:
                 reason = exc.strerror or exc
                 raise OSError(
-                    exc.errno, f"Impossible d'écouter sur {self.host}:{self.port} ({self.name}) : {reason}"
+                    exc.errno, f"Impossible d’écouter sur {self.host}:{self.port} ({self.name}) : {reason}"
                 ) from exc
             self.port = listener.getsockname()[1]
             workers = ThreadPoolExecutor(max_workers=MAX_WORKERS, thread_name_prefix=f"{self.name}-worker")

@@ -389,7 +389,7 @@ class _Session:
         ferait consommer — ou manquer — par un appel qui n'est pas celui qu'on observe.
         """
         waited_ms = self._until_ready(client)
-        self.step("state", f"Connexion rétablie en {_fr(waited_ms)} ms : le client s'est reconnecté seul", "info",
+        self.step("state", f"Connexion rétablie en {_fr(waited_ms)} ms : le client s’est reconnecté seul", "info",
                   duration_ms=waited_ms)
 
     def call(
@@ -486,7 +486,7 @@ def _latency_trap(lab: _Session) -> _Outcome:
                  local, "get_product_details", product_id, kind="local_call").checked().duration_ms
         for rank, product_id in enumerate(product_ids, start=1)
     )
-    lab.network(f"Le serveur s'éloigne : {_fr(latency_ms)} ms de latence aller-retour", latency_ms=latency_ms)
+    lab.network(f"Le serveur s’éloigne : {_fr(latency_ms)} ms de latence aller-retour", latency_ms=latency_ms)
     # Le code de la boucle est identique, seul le client change : c'est toute la « transparence ».
     rpc_total_ms = sum(
         lab.call(f"Lecture distante {rank}/{calls} : get_product_details({product_id!r})",
@@ -521,14 +521,14 @@ def _timeout_spike(lab: _Session) -> _Outcome:
     stock_before = lab.borrow(product_id, minimum=2)
     client = lab.remote_client()
     lab.warm_up(client)
-    lab.step("state", f"Stock de {product_id} avant l'expérience : {stock_before}", "info", stock=stock_before)
+    lab.step("state", f"Stock de {product_id} avant l’expérience : {stock_before}", "info", stock=stock_before)
 
     lab.network(f"Le réseau se dégrade : il retiendra chaque requête {_fr(spike_ms)} ms",
                 spike_probability=1.0, spike_ms=spike_ms)
     in_flight_s = spike_ms / 1000 + _SETTLE_MARGIN_S
     lab.in_flight_until(time.perf_counter() + in_flight_s)
     patient = lab.call(
-        "Sans échéance : update_stock(-1) — l'appelant attend le temps qu'il faut",
+        "Sans échéance : update_stock(-1) — l’appelant attend le temps qu’il faut",
         client, "update_stock", product_id, -1, timeout=spike_ms / 1000 + DEFAULT_TIMEOUT_S, slow=True,
     ).checked()
 
@@ -536,16 +536,16 @@ def _timeout_spike(lab: _Session) -> _Outcome:
     lab.in_flight_until(time.perf_counter() + in_flight_s)
     hasty = lab.call(f"Avec une échéance de {_fr(deadline_ms)} ms : update_stock(-1)",
                      client, "update_stock", product_id, -1, timeout=deadline_ms / 1000)
-    lab.step("note", "L'appelant est libéré, mais ne sait pas si le serveur a exécuté l'appel : issue inconnue", "info")
+    lab.step("note", "L’appelant est libéré, mais ne sait pas si le serveur a exécuté l’appel : issue inconnue", "info")
     lab.network("Fin du pic : le réseau redevient normal", spike_probability=0.0, spike_ms=0.0)
     lab.settle()
     stock_after = lab.stock(product_id)
     server_executed = stock_after == stock_before - 2
     lab.step(
         "state",
-        f"Vérité terrain : le serveur a tout de même exécuté l'appel abandonné (stock à {stock_after})"
+        f"Vérité terrain : le serveur a tout de même exécuté l’appel abandonné (stock à {stock_after})"
         if server_executed else
-        f"Vérité terrain : le serveur n'a pas exécuté l'appel abandonné (stock à {stock_after})",
+        f"Vérité terrain : le serveur n’a pas exécuté l’appel abandonné (stock à {stock_after})",
         "info", stock=stock_after, server_executed=server_executed,
     )
 
@@ -560,11 +560,11 @@ def _timeout_spike(lab: _Session) -> _Outcome:
         "stock_before": stock_before,
         "stock_after": stock_after,
     }
-    fate = "a tout de même exécuté" if server_executed else "n'a finalement pas exécuté"
+    fate = "a tout de même exécuté" if server_executed else "n’a finalement pas exécuté"
     verdict = (
-        f"Sans échéance, l'appelant reste bloqué {_fr(patient.duration_ms)} ms par le pic ; avec une échéance "
+        f"Sans échéance, l’appelant reste bloqué {_fr(patient.duration_ms)} ms par le pic ; avec une échéance "
         f"de {_fr(deadline_ms)} ms, il est libéré au bout de {_fr(hasty.duration_ms)} ms ({hasty.code}), sans "
-        f"pouvoir savoir que le serveur {fate} l'appel."
+        f"pouvoir savoir que le serveur {fate} l’appel."
     )
     return metrics, verdict
 
@@ -573,7 +573,7 @@ def _check_spike_options(options: dict[str, float]) -> None:
     if options["deadline_ms"] >= options["spike_ms"]:
         raise ValueError(
             f"« deadline_ms » ({_fr(options['deadline_ms'])}) doit être inférieur à « spike_ms » "
-            f"({_fr(options['spike_ms'])}) : sinon l'échéance n'expire jamais pendant le pic"
+            f"({_fr(options['spike_ms'])}) : sinon l’échéance n’expire jamais pendant le pic"
         )
 
 
@@ -584,7 +584,7 @@ def _connection_cut(lab: _Session) -> _Outcome:
     lab.call(f"Référence locale : get_product_details({product_id!r}) — aucune erreur de transport possible",
              local, "get_product_details", product_id, kind="local_call").checked()
 
-    lab.arm("reset", "Panne armée : la prochaine requête coupera la connexion avant d'atteindre le serveur")
+    lab.arm("reset", "Panne armée : la prochaine requête coupera la connexion avant d’atteindre le serveur")
     crashed = lab.call("Client naïf, écrit comme un appel local : get_product_details(…)",
                        naive, "get_product_details", product_id)
     lab.reconnect(naive)
@@ -609,13 +609,13 @@ def _connection_cut(lab: _Session) -> _Outcome:
     }
     naive_part = (
         f"La coupure fait échouer le client naïf en {_fr(crashed.duration_ms)} ms avec "
-        f"{metrics['naive_error']} ({crashed.code}), une erreur qu'aucun appel local ne peut produire"
+        f"{metrics['naive_error']} ({crashed.code}), une erreur qu’aucun appel local ne peut produire"
         if crashed.error is not None else
-        "Le client naïf n'a pas subi la coupure armée"
+        "Le client naïf n’a pas subi la coupure armée"
     )
     resilient_part = (
         f"le client résilient aboutit à la tentative n° {len(attempts)}, en {_fr(saved.duration_ms)} ms "
-        f"dont {_fr(backoff_ms)} ms d'attente"
+        f"dont {_fr(backoff_ms)} ms d’attente"
         if saved.ok else
         f"le client résilient échoue lui aussi ({saved.code}) après {_plural(len(attempts), 'tentative')}"
     )
@@ -650,7 +650,7 @@ def _server_outage(lab: _Session) -> _Outcome:
         rest_s = breaker.snapshot()["retry_in_s"] + _BREAKER_CLOCK_MARGIN_S
         lab.pause(rest_s, f"Disjoncteur ouvert : aucun appel pendant {_fr(rest_s * 1000, 0)} ms (délai de repos)")
         probes += 1
-        recovered = lab.call(f"Appel d'essai n° {probes} : get_product_details(…)",
+        recovered = lab.call(f"Appel d’essai n° {probes} : get_product_details(…)",
                              client, "get_product_details", product_id).ok
 
     state = breaker.snapshot()
@@ -669,9 +669,9 @@ def _server_outage(lab: _Session) -> _Outcome:
         "breaker_state": state["state"],
     }
     recovery_part = (
-        f"au retour du serveur, l'appel d'essai n° {probes} réussit et le disjoncteur se referme"
+        f"au retour du serveur, l’appel d’essai n° {probes} réussit et le disjoncteur se referme"
         if recovered else
-        f"après {_plural(probes, 'appel')} d'essai, le disjoncteur n'est toujours pas refermé"
+        f"après {_plural(probes, 'appel')} d’essai, le disjoncteur n’est toujours pas refermé"
     )
     refusal_part = (
         f"le disjoncteur refuse les {len(refused)} appels suivants en {_fr(fast_fail_ms)} ms chacun, "
@@ -698,26 +698,26 @@ def _duplicate_execution(lab: _Session) -> _Outcome:
 
     retrying = lab.resilient(inner, retry=policy)
     lab.arm("lost_reply", "Panne armée : la requête atteindra le serveur, mais sa réponse sera perdue")
-    lab.call("update_stock(-1) avec nouvelles tentatives, sans clé d'idempotence",
+    lab.call("update_stock(-1) avec nouvelles tentatives, sans clé d’idempotence",
              retrying, "update_stock", product_id, -1).checked()
     naive_after = lab.stock(product_id)
     naive_executions = stock_before - naive_after
     lab.step("state", f"Vérité terrain : stock {stock_before} → {naive_after}, "
-                      f"le serveur a exécuté l'opération {naive_executions} fois",
+                      f"le serveur a exécuté l’opération {naive_executions} fois",
              "ok" if naive_after == expected_after else "error",
              stock=naive_after, expected=expected_after, executions=naive_executions)
 
     lab.set_stock(product_id, stock_before)
-    lab.step("state", f"Stock remis à {stock_before} pour refaire l'expérience à l'identique", "info",
+    lab.step("state", f"Stock remis à {stock_before} pour refaire l’expérience à l’identique", "info",
              stock=stock_before)
     keyed = lab.resilient(inner, retry=policy, auto_idempotency_key=True)
-    lab.arm("lost_reply", "Même panne armée, cette fois avec une clé d'idempotence jointe à l'appel")
-    replay = lab.call("update_stock(-1) avec nouvelles tentatives ET clé d'idempotence",
+    lab.arm("lost_reply", "Même panne armée, cette fois avec une clé d’idempotence jointe à l’appel")
+    replay = lab.call("update_stock(-1) avec nouvelles tentatives ET clé d’idempotence",
                       keyed, "update_stock", product_id, -1).checked()
     idempotent_after = lab.stock(product_id)
     idempotent_executions = stock_before - idempotent_after
     lab.step("state", f"Vérité terrain : stock {stock_before} → {idempotent_after}, "
-                      f"le serveur a exécuté l'opération {idempotent_executions} fois",
+                      f"le serveur a exécuté l’opération {idempotent_executions} fois",
              "ok" if idempotent_after == expected_after else "error",
              stock=idempotent_after, expected=expected_after, executions=idempotent_executions)
 
@@ -734,11 +734,11 @@ def _duplicate_execution(lab: _Session) -> _Outcome:
     }
     replay_fate = "le serveur reconnaît le rejeu" if metrics["deduplicated"] else "le serveur ne reconnaît aucun rejeu"
     verdict = (
-        f"Une seule opération était demandée, mais la réponse perdue puis la nouvelle tentative l'ont fait "
+        f"Une seule opération était demandée, mais la réponse perdue puis la nouvelle tentative l’ont fait "
         f"exécuter {naive_executions} fois : le stock passe de {stock_before} à {naive_after} au lieu de "
-        f"{expected_after} ; avec une clé d'idempotence, {replay_fate} : "
+        f"{expected_after} ; avec une clé d’idempotence, {replay_fate} : "
         f"{_plural(idempotent_executions, 'exécution')} pour {_plural(metrics['idempotent_attempts'], 'tentative')}, "
-        f"et le stock s'établit à {idempotent_after}."
+        f"et le stock s’établit à {idempotent_after}."
     )
     return metrics, verdict
 
@@ -786,14 +786,14 @@ _SCENARIOS: tuple[_Scenario, ...] = (
     ),
     _Scenario(
         id="timeout_spike",
-        title="Le pic de latence et l'échéance",
+        title="Le pic de latence et l’échéance",
         icon="timer",
-        summary="Un pic de 1,5 s frappe un appel : sans échéance, l'appelant reste bloqué ; avec une échéance "
-                "de 300 ms, il est libéré — sans savoir si le serveur a exécuté l'appel.",
+        summary="Un pic de 1,5 s frappe un appel : sans échéance, l’appelant reste bloqué ; avec une échéance "
+                "de 300 ms, il est libéré — sans savoir si le serveur a exécuté l’appel.",
         concept="Échéances et issue inconnue",
         lesson="Tout appel distant doit porter une échéance, sinon la lenteur du réseau devient celle de "
-               "l'appelant. Mais un timeout n'est pas un refus : l'issue est inconnue, le serveur a peut-être "
-               "exécuté l'appel.",
+               "l’appelant. Mais un timeout n’est pas un refus : l’issue est inconnue, le serveur a peut-être "
+               "exécuté l’appel.",
         duration_hint_s=3.5,
         play=_timeout_spike,
         options={"spike_ms": _Option(1500, 100, 5000), "deadline_ms": _Option(300, 20, 2000)},
@@ -803,12 +803,12 @@ _SCENARIOS: tuple[_Scenario, ...] = (
         id="connection_cut",
         title="La coupure en plein appel",
         icon="unplug",
-        summary="La connexion est coupée pendant l'appel : un client écrit comme pour un appel local échoue "
+        summary="La connexion est coupée pendant l’appel : un client écrit comme pour un appel local échoue "
                 "sur une erreur réseau ; un client résilient attend, réessaie et aboutit.",
         concept="Pannes partielles et nouvelles tentatives",
         lesson="Un appel distant peut échouer alors que le code et le serveur sont corrects : le réseau est un "
-               "mode de panne à part entière. Il faut le prévoir — rattraper l'erreur, attendre, réessayer — "
-               "ce qui n'est sans danger que pour une opération idempotente, comme cette lecture.",
+               "mode de panne à part entière. Il faut le prévoir — rattraper l’erreur, attendre, réessayer — "
+               "ce qui n’est sans danger que pour une opération idempotente, comme cette lecture.",
         duration_hint_s=0.5,
         play=_connection_cut,
     ),
@@ -816,10 +816,10 @@ _SCENARIOS: tuple[_Scenario, ...] = (
         id="server_outage",
         title="La panne du serveur et le disjoncteur",
         icon="power",
-        summary="Le serveur tombe : les nouvelles tentatives s'épuisent, le disjoncteur s'ouvre et refuse les "
-                "appels suivants sans attendre ; au retour du serveur, un appel d'essai le referme.",
+        summary="Le serveur tombe : les nouvelles tentatives s’épuisent, le disjoncteur s’ouvre et refuse les "
+                "appels suivants sans attendre ; au retour du serveur, un appel d’essai le referme.",
         concept="Disjoncteur (circuit breaker)",
-        lesson="Réessayer ne répare pas un serveur en panne : cela fait attendre l'appelant et accable le "
+        lesson="Réessayer ne répare pas un serveur en panne : cela fait attendre l’appelant et accable le "
                "serveur. Un disjoncteur échoue vite tant que la panne dure, puis teste prudemment la reprise "
                "avant de rétablir le trafic.",
         duration_hint_s=1.5,
@@ -830,13 +830,13 @@ _SCENARIOS: tuple[_Scenario, ...] = (
         id="duplicate_execution",
         title="La réponse perdue et la double exécution",
         icon="copy",
-        summary="La réponse d'un update_stock(-1) se perd : le client réessaie et le serveur exécute "
-                "l'opération deux fois. Avec une clé d'idempotence, le rejeu est reconnu et le stock ne baisse "
-                "que d'une unité.",
+        summary="La réponse d’un update_stock(-1) se perd : le client réessaie et le serveur exécute "
+                "l’opération deux fois. Avec une clé d’idempotence, le rejeu est reconnu et le stock ne baisse "
+                "que d’une unité.",
         concept="Idempotence et nouvelles tentatives",
-        lesson="Après une erreur réseau, l'appelant ignore si le serveur a exécuté l'appel : réessayer une "
-               "opération non idempotente peut l'appliquer deux fois. Une nouvelle tentative n'est sûre que si "
-               "l'opération est idempotente — par nature, ou grâce à une clé que le serveur sait reconnaître.",
+        lesson="Après une erreur réseau, l’appelant ignore si le serveur a exécuté l’appel : réessayer une "
+               "opération non idempotente peut l’appliquer deux fois. Une nouvelle tentative n’est sûre que si "
+               "l’opération est idempotente — par nature, ou grâce à une clé que le serveur sait reconnaître.",
         duration_hint_s=0.6,
         play=_duplicate_execution,
     ),
@@ -872,42 +872,42 @@ METRIC_INFO: dict[str, dict[str, str]] = {
         ("per_call_ms", "Par appel distant", "ms"),
         ("slowdown_x", "Ralentissement de la boucle", "×"),
         ("batched_total_ms", "Un seul appel groupé", "ms"),
-        ("batched_products", "Fiches rapportées par l'appel groupé", ""),
-        ("batched_speedup_x", "Gain de l'appel groupé", "×"),
+        ("batched_products", "Fiches rapportées par l’appel groupé", ""),
+        ("batched_speedup_x", "Gain de l’appel groupé", "×"),
         ("spike_ms", "Durée du pic de latence", "ms"),
-        ("deadline_ms", "Échéance fixée par l'appelant", "ms"),
+        ("deadline_ms", "Échéance fixée par l’appelant", "ms"),
         ("no_deadline_ms", "Attente sans échéance", "ms"),
         ("with_deadline_ms", "Attente avec échéance", "ms"),
-        ("with_deadline_outcome", "Issue vue par l'appelant", ""),
-        ("time_saved_ms", "Attente évitée par l'échéance", "ms"),
+        ("with_deadline_outcome", "Issue vue par l’appelant", ""),
+        ("time_saved_ms", "Attente évitée par l’échéance", "ms"),
         ("server_executed", "Appel abandonné exécuté par le serveur", ""),
-        ("stock_before", "Stock avant l'expérience", ""),
-        ("stock_after", "Stock après l'expérience", ""),
+        ("stock_before", "Stock avant l’expérience", ""),
+        ("stock_after", "Stock après l’expérience", ""),
         ("naive_outcome", "Issue du client naïf", ""),
         ("naive_error", "Exception levée chez le client naïf", ""),
-        ("naive_ms", "Durée de l'appel naïf", "ms"),
+        ("naive_ms", "Durée de l’appel naïf", "ms"),
         ("resilient_outcome", "Issue du client résilient", ""),
         ("resilient_attempts", "Tentatives du client résilient", ""),
         ("resilient_backoff_ms", "Attente entre les tentatives", "ms"),
         ("resilient_total_ms", "Durée totale du client résilient", "ms"),
-        ("failures_before_open", "Échecs avant l'ouverture du disjoncteur", ""),
+        ("failures_before_open", "Échecs avant l’ouverture du disjoncteur", ""),
         ("slow_fail_ms", "Échec après épuisement des tentatives", "ms"),
-        ("slow_fail_outcome", "Issue de l'appel qui réessaie", ""),
+        ("slow_fail_outcome", "Issue de l’appel qui réessaie", ""),
         ("fast_fail_ms", "Refus immédiat par le disjoncteur", "ms"),
         ("fast_fail_outcome", "Issue des appels refusés", ""),
         ("fast_fail_calls", "Appels refusés sans toucher au réseau", ""),
         ("fast_fail_speedup_x", "Échec rapide contre échec lent", "×"),
         ("breaker_opened", "Disjoncteur ouvert pendant la panne", ""),
-        ("recovery_probes", "Appels d'essai avant la reprise", ""),
+        ("recovery_probes", "Appels d’essai avant la reprise", ""),
         ("recovered", "Service rétabli", ""),
         ("breaker_state", "État final du disjoncteur", ""),
         ("expected_after", "Stock attendu (une seule exécution)", ""),
         ("naive_after", "Stock après retry sans clé", ""),
-        ("naive_executions", "Exécutions sans clé d'idempotence", ""),
-        ("naive_attempts", "Tentatives sans clé d'idempotence", ""),
+        ("naive_executions", "Exécutions sans clé d’idempotence", ""),
+        ("naive_attempts", "Tentatives sans clé d’idempotence", ""),
         ("idempotent_after", "Stock après retry avec clé", ""),
-        ("idempotent_executions", "Exécutions avec clé d'idempotence", ""),
-        ("idempotent_attempts", "Tentatives avec clé d'idempotence", ""),
+        ("idempotent_executions", "Exécutions avec clé d’idempotence", ""),
+        ("idempotent_attempts", "Tentatives avec clé d’idempotence", ""),
         ("deduplicated", "Rejeu reconnu par le serveur", ""),
     )
 }
@@ -925,7 +925,7 @@ def _require_protocol(protocol: str) -> None:
     if protocol not in REMOTE_PROTOCOLS:
         raise ValueError(
             f"Protocole inconnu : {protocol!r} (attendu : {', '.join(REMOTE_PROTOCOLS)} — "
-            "un scénario de panne a besoin d'un réseau à dérégler)"
+            "un scénario de panne a besoin d’un réseau à dérégler)"
         )
 
 
@@ -1083,8 +1083,8 @@ class _ConsoleReport:
     def banner(self, protocol: str) -> None:
         title = Text.assemble((APP_NAME, f"bold {ACCENT}"), ("  ·  Laboratoire de pannes", "bold"))
         subtitle = Text(
-            "Un appel distant n'est pas un appel local : latence, échéances, coupures, pannes, doublons.\n"
-            f"Middleware mis à l'épreuve : {PROTOCOL_LABELS[protocol]} — chaque appel traverse le proxy de chaos.",
+            "Un appel distant n’est pas un appel local : latence, échéances, coupures, pannes, doublons.\n"
+            f"Middleware mis à l’épreuve : {PROTOCOL_LABELS[protocol]} — chaque appel traverse le proxy de chaos.",
             style=MUTED,
         )
         self.console.print()
@@ -1146,15 +1146,15 @@ def main(argv: list[str] | None = None) -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(
         prog="python -m benchmark_lab.failure_simulation",
-        description="Laboratoire de pannes : ce qui sépare, mesures à l'appui, un appel distant d'un appel local.",
+        description="Laboratoire de pannes : ce qui sépare, mesures à l’appui, un appel distant d’un appel local.",
         add_help=False,
     )
     parser.add_argument("-h", "--help", action="help", help="affiche cette aide et quitte")
     parser.add_argument("--scenario", metavar="ID",
                         help=f"scénario à jouer : {', '.join(scenario.id for scenario in _SCENARIOS)} "
-                             "(par défaut : tous, dans l'ordre)")
+                             "(par défaut : tous, dans l’ordre)")
     parser.add_argument("--protocol", metavar="P", default="custom",
-                        help=f"middleware mis à l'épreuve : {', '.join(REMOTE_PROTOCOLS)} (par défaut : custom)")
+                        help=f"middleware mis à l’épreuve : {', '.join(REMOTE_PROTOCOLS)} (par défaut : custom)")
     args = parser.parse_args(argv)
     try:
         chosen = _SCENARIOS if args.scenario is None else (_find_scenario(args.scenario),)

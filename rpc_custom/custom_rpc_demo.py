@@ -109,7 +109,7 @@ class Demo:
         title = Text.assemble((APP_NAME, f"bold {ACCENT}"), ("  ·  RPC fait maison", "bold"))
         subtitle = Text(
             "JSON-RPC 2.0 sur TCP — un stub, un squelette, une trame préfixée par sa longueur.\n"
-            f"Squelette serveur à l'écoute sur {HOST}:{self.skeleton.port}, "
+            f"Squelette serveur à l’écoute sur {HOST}:{self.skeleton.port}, "
             f"{len(self.skeleton.methods())} procédures enregistrées.",
             style=MUTED,
         )
@@ -137,7 +137,7 @@ class Demo:
     def show_sync_call(self) -> None:
         self.section(
             "Appel synchrone",
-            "Pour l'appelant, une fonction comme une autre : c'est la transparence de localisation.",
+            "Pour l’appelant, une fonction comme une autre : c’est la transparence de localisation.",
         )
         self.code('result = stub.update_stock("SKU-1001", -3)')
         started = time.perf_counter()
@@ -152,7 +152,7 @@ class Demo:
     def show_wire(self) -> None:
         self.section(
             "Sous le capot",
-            "Le même appel, vu du réseau : ce que le stub a réellement écrit, et ce qu'il a lu.",
+            "Le même appel, vu du réseau : ce que le stub a réellement écrit, et ce qu’il a lu.",
         )
         trace = self.collector.get(self.stub.last_call_id)
         if trace is None:
@@ -161,7 +161,7 @@ class Demo:
         self.console.print(_frame_panel("Requête — écrite par le stub", events["client.send"], CLIENT))
         self.console.print(_frame_panel("Réponse — écrite par le squelette", events["server.send"], SERVER))
 
-        table = self.table("#", "Côté", "Étape", "Durée", "Octets", "Rôle", title="Chronologie de l'appel")
+        table = self.table("#", "Côté", "Étape", "Durée", "Octets", "Rôle", title="Chronologie de l’appel")
         for index, event in enumerate(trace.events, start=1):
             info = STAGE_INFO.get(event.stage, {"label": event.stage, "role": ""})
             table.add_row(
@@ -215,7 +215,7 @@ class Demo:
     def show_batch(self) -> None:
         self.section(
             "Lot (batch)",
-            "Plusieurs appels dans une seule trame ; un échec n'efface pas les autres résultats.",
+            "Plusieurs appels dans une seule trame ; un échec n’efface pas les autres résultats.",
         )
         calls: list[tuple[str, Any]] = [
             ("calculate_factorial", [12]),
@@ -242,7 +242,7 @@ class Demo:
             )
 
     def show_notification(self) -> None:
-        self.section("Notification", "Une requête sans « id » : le serveur l'exécute, mais ne répond jamais.")
+        self.section("Notification", "Une requête sans « id » : le serveur l’exécute, mais ne répond jamais.")
         self.code('stub.notify("log_event", "inventaire vérifié")')
         mark = self.mark()
         self.stub.notify("log_event", "inventaire vérifié")
@@ -288,12 +288,12 @@ class Demo:
         if trace is not None:
             frames = sum(event.stage == "client.stream_item" for event in trace.events)
             final = json.dumps({"stream": "end", "count": frames}, separators=(",", ":"))
-            self.note(f"{frames} trames d'éléments, puis la réponse finale {final} clôt le flux.")
+            self.note(f"{frames} trames d’éléments, puis la réponse finale {final} clôt le flux.")
 
     def show_errors(self) -> None:
         self.section(
             "Erreurs",
-            "Ce qu'un appel local ne connaît pas : le serveur peut refuser, se taire, ou disparaître.",
+            "Ce qu’un appel local ne connaît pas : le serveur peut refuser, se taire, ou disparaître.",
         )
         cases: list[tuple[str, str, Callable[[], Any]]] = [
             ("Procédure inconnue", 'stub.get_product("SKU-1001")',
@@ -327,8 +327,8 @@ class Demo:
             table.add_row(Text.assemble((f"{label}\n", "bold"), (source, CLIENT)), outcome)
         self.console.print(table)
         self.note(
-            "Après un délai dépassé, le client ignore si le serveur a exécuté l'appel : c'est le piège de la\n"
-            "    transparence, et la raison d'être des retries, de l'idempotence et des disjoncteurs.",
+            "Après un délai dépassé, le client ignore si le serveur a exécuté l’appel : c’est le piège de la\n"
+            "    transparence, et la raison d’être des retries, de l’idempotence et des disjoncteurs.",
             mark="!", color=WARNING,
         )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import socket
 import struct
+import sys
 import threading
 import time
 from typing import Any, Iterator
@@ -992,7 +993,11 @@ def test_stop_is_idempotent_and_releases_the_port(bus: EventBus) -> None:
     assert not skeleton.running
     assert client.receive() is None             # la connexion ouverte a été fermée par le serveur
     client.close()
-    with socket.socket() as probe:              # sans SO_REUSEADDR : le port doit être réellement libre
+    with socket.socket() as probe:              # liaison exclusive : plus personne ne doit écouter sur le port
+        if sys.platform == "win32":
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        else:                                   # sous Linux, sans SO_REUSEADDR, le TIME_WAIT bloquerait la liaison
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         probe.bind((HOST, port))
     successor = make_server(bus, port).start()
     try:
@@ -1006,7 +1011,7 @@ def test_stop_is_idempotent_and_releases_the_port(bus: EventBus) -> None:
 def test_start_is_idempotent_and_reports_a_busy_port(server: RpcServerSkeleton, bus: EventBus) -> None:
     port = server.port
     assert server.start() is server and server.port == port
-    with pytest.raises(OSError, match="Impossible d'écouter"):
+    with pytest.raises(OSError, match="Impossible d’écouter"):
         make_server(bus, port).start()
 
 

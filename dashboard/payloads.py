@@ -143,7 +143,7 @@ class Fields:
         accepted = tuple(choices)
         return self._read(
             name, default, lambda value: isinstance(value, str) and value in accepted,
-            f"l'une des valeurs {', '.join(accepted)}",
+            f"l’une des valeurs {', '.join(accepted)}",
         )
 
     def integer(self, name: str, default: Any, minimum: int, maximum: int) -> Any:

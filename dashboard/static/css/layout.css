@@ -211,9 +211,15 @@
   transition: opacity var(--dur-2) var(--ease-out);
 }
 
+/* Hors du flux : invisible, le raccourci ne doit pas réserver sa place au détriment du libellé. */
 .nav-item__kbd {
+  position: absolute;
+  top: 50%;
+  right: var(--sp-2);
   display: flex;
   opacity: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
   transition: opacity var(--dur-1) var(--ease-out);
 }
 

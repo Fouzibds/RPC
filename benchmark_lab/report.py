@@ -168,7 +168,7 @@ def load_report(name: str, directory: Path | None = None) -> dict[str, Any]:
     except FileNotFoundError:
         raise FileNotFoundError(f"Rapport introuvable : {path.name}") from None
     except ValueError as exc:
-        raise ValueError(f"Rapport illisible : {path.name} n'est pas un document JSON valide") from exc
+        raise ValueError(f"Rapport illisible : {path.name} n’est pas un document JSON valide") from exc
     if not isinstance(document, dict):
         raise ValueError(f"Rapport illisible : {path.name} ne contient pas un objet JSON")
     return document
@@ -412,7 +412,7 @@ def to_text(report: Mapping[str, Any], tablefmt: str = "rounded_outline") -> str
 
 def to_markdown(report: Mapping[str, Any]) -> str:
     """Rapport complet en Markdown (tableaux au format « github » de tabulate)."""
-    lines = [f"# {APP_NAME} · {APP_TAGLINE} — rapport du banc d'essai", ""]
+    lines = [f"# {APP_NAME} · {APP_TAGLINE} — rapport du banc d’essai", ""]
     lines += [f"- **{name}** : {value}" for name, value in _summary(report)]
     for table in report_tables(report):
         lines += ["", f"## {table.title}", "", table.render("github")]
@@ -456,7 +456,7 @@ def _summary(report: Mapping[str, Any]) -> Iterator[tuple[str, str]]:
     latency = report.get("latency")
     if latency:
         yield "Mesure de latence", (
-            f"{_latency_context(latency)}, après {fr_number(latency.get('warmup'))} appels d'échauffement, "
+            f"{_latency_context(latency)}, après {fr_number(latency.get('warmup'))} appels d’échauffement, "
             "bus de traces coupé"
         )
 

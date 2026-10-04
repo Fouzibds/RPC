@@ -149,7 +149,7 @@ def test_same_call_gives_the_same_result_on_every_route(
     reference = results["local", False]
     assert reference[0] == "ok"
     for route, result in results.items():
-        assert result == reference, f"{route} ne renvoie pas le même dictionnaire que l'appel local"
+        assert result == reference, f"{route} ne renvoie pas le même dictionnaire que l’appel local"
 
 
 @pytest.mark.parametrize(
@@ -291,6 +291,53 @@ def test_unreachable_server_is_unavailable_on_every_protocol() -> None:
                 client.calculate_factorial(5)
             assert caught.value.code == UNAVAILABLE, client.protocol
             assert not isinstance(caught.value, RpcTimeoutError), client.protocol
+    finally:
+        for client in remote_clients:
+            client.close()
+
+
+@pytest.mark.parametrize("protocol", REMOTE_PROTOCOLS)
+def test_connect_opens_the_connection_the_next_call_reuses_without_calling(lab: LabRuntime, protocol: str) -> None:
+    """``connect()`` ouvre la connexion d'avance : ni appel, ni trace ; l'appel suivant la réutilise."""
+    proxy = lab.proxies[protocol]
+    events: list[TraceEvent] = []
+    unsubscribe = lab.bus.subscribe(events.append)
+    if protocol == "grpc":
+        # gRPC partage une connexion entre les canaux de mêmes réglages qui visent la même adresse : un
+        # délai de connexion propre à ce test garantit que ce canal-ci ouvre la sienne.
+        host, port = lab.endpoint("grpc", via_proxy=True)
+        client: InventoryClient = GrpcInventoryClient(host, port, connect_timeout=2.5, bus=lab.bus)
+    else:
+        client = lab.client(protocol, via_proxy=True)
+    try:
+        joined, settled = proxy.links()
+        assert client.connect() is True
+        assert proxy.wait_links(settled + 1, 2.0) == (joined + 1, settled + 1)  # une connexion, reliée au serveur
+        assert [event.stage for event in events if event.call_id] == []     # rien qui ressemble à un appel
+        assert lab.service.stats()["calls"] == {}
+        assert client.calculate_factorial(5)["result"] == "120"
+        assert client.connect() is True                                     # déjà prête : rien de plus
+        assert proxy.links() == (joined + 1, settled + 1)                   # l'appel a pris la connexion ouverte
+    finally:
+        client.close()
+        unsubscribe()
+
+
+def test_connect_to_an_unreachable_server_fails_fast_without_raising() -> None:
+    """Serveur absent : ``connect()`` répond faux dans le délai de connexion, sans attendre l'échéance donnée."""
+    port, bus = free_port(), EventBus()
+    custom = CustomInventoryClient(HOST, port, bus=bus)
+    custom.stub.connect_timeout = 0.3
+    remote_clients: list[InventoryClient] = [
+        custom,
+        GrpcInventoryClient(HOST, port, connect_timeout=0.3, bus=bus),
+        RestInventoryClient(HOST, port, connect_timeout=0.3, bus=bus),
+    ]
+    try:
+        for client in remote_clients:
+            started = time.perf_counter()
+            assert client.connect(timeout=5.0) is False, client.protocol
+            assert time.perf_counter() - started < 2.0, client.protocol
     finally:
         for client in remote_clients:
             client.close()

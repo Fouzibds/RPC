@@ -333,7 +333,7 @@ class _RestRequestHandler(BaseHTTPRequestHandler):
             if trace:
                 trace.step("server.error", detail={
                     "code": UNAVAILABLE,
-                    "message": "Client déconnecté : la réponse n'a pas pu lui être remise",
+                    "message": "Client déconnecté : la réponse n’a pas pu lui être remise",
                 })
             return False
         if trace:
@@ -525,7 +525,7 @@ class RestServerHandle:
                 server = _RestHTTPServer((self.host, self._port), self.service, self._bus)
             except OSError as exc:
                 raise OSError(
-                    exc.errno, f"Serveur REST : impossible d'écouter sur {self.host}:{self._port} ({exc})"
+                    exc.errno, f"Serveur REST : impossible d’écouter sur {self.host}:{self._port} ({exc})"
                 ) from exc
             self._port = server.server_address[1]
             thread = threading.Thread(
@@ -574,7 +574,7 @@ def main() -> None:
         raise SystemExit(exc.strerror) from None  # port occupé : un message clair plutôt qu'une pile d'appels
     routes = "\n".join(f"  {route.verb:<5}{route.template}" for route in ROUTES)
     # flush : la bannière doit apparaître tout de suite, même quand la sortie est redirigée.
-    print(f"API REST de référence à l'écoute sur {handle.url}  (Ctrl+C pour arrêter)\n{routes}", flush=True)
+    print(f"API REST de référence à l’écoute sur {handle.url}  (Ctrl+C pour arrêter)\n{routes}", flush=True)
     try:
         while True:  # pas de signal.pause() sous Windows ; sleep reste interruptible par Ctrl+C
             time.sleep(1.0)

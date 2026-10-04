@@ -119,7 +119,7 @@ def proxies_table(status: Mapping[str, Any], *, narrow: bool = False) -> Table:
     table = make_table(
         "Proxys de chaos",
         caption="Pannes injectées — coupures : connexions réinitialisées ; refus : serveur injoignable ; "
-                "avalés : paquets d'un trou noir ; perdues : réponses supprimées après exécution.",
+                "avalés : paquets d’un trou noir ; perdues : réponses supprimées après exécution.",
     )
     return fill_table(table, columns, rows, narrow=narrow)
 
@@ -189,4 +189,4 @@ def activity_view(runtime: "LabRuntime", *, narrow: bool = False) -> RenderableT
 def render_status(console: Console, runtime: "LabRuntime") -> None:
     console.print(status_view(runtime, narrow=is_narrow(console)))
     hint(console, "Chaque client peut viser le port direct (boucle locale idéale) ou celui du proxy, où le réseau "
-                  "simulé s'applique.")
+                  "simulé s’applique.")

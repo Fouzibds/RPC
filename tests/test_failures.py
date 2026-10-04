@@ -412,7 +412,7 @@ def test_armed_fault_does_not_outlive_an_interrupted_scenario(
 
     def arm_then_fail(kind: str, protocol: str, count: int = 1) -> None:
         arm(kind, protocol, count)
-        raise Interrupted("juste après l'armement, avant l'appel qui devait subir la panne")
+        raise Interrupted("juste après l’armement, avant l’appel qui devait subir la panne")
 
     monkeypatch.setattr(lab, "arm", arm_then_fail)
 

@@ -135,6 +135,15 @@
   min-width: 0;
 }
 
+/* Libellé de groupe et, à droite, l'état « Personnalisé » quand aucun préréglage ne s'applique. */
+.chaos-cond__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  min-height: 20px;
+}
+
 .chaos-presets {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1107,6 +1116,21 @@
 .chaos-scen__status {
   display: inline-flex;
   min-width: 0;
+}
+
+/* Colonne très étroite : le badge s'abrège plutôt que de passer sous le bouton. */
+.chaos-scen__status .badge {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.chaos-scen__status .badge__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chaos-scen__duration[hidden] {
+  display: none;
 }
 
 .chaos-scen__detail {

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import threading
 import time
 from typing import Any, Callable, Iterable, Iterator
 
@@ -45,6 +46,14 @@ from . import converters as conv
 from .generated import service_pb2 as pb
 from .generated import service_pb2_grpc as pb_grpc
 from .interceptors import CALL_ID_KEY, PROTOCOL, TracingChannel, rpc_status
+
+
+# États où une tentative de connexion est tranchée : prêt, ou en échec (puis attente avant la suivante).
+_SETTLED_STATES = frozenset({
+    grpc.ChannelConnectivity.READY,
+    grpc.ChannelConnectivity.TRANSIENT_FAILURE,
+    grpc.ChannelConnectivity.SHUTDOWN,
+})
 
 
 def channel_options(connect_timeout: float = CONNECT_TIMEOUT_S) -> list[tuple[str, int]]:
@@ -107,6 +116,8 @@ class GrpcInventoryClient(InventoryClient):
         self.grpc_stub = pb_grpc.InventoryServiceStub(self.channel)
         self.traced_stub = pb_grpc.InventoryServiceStub(TracingChannel(self.channel, authority=self.target, bus=bus))
         self._timeout = timeout
+        self._connect_timeout = connect_timeout
+        self._woken = False         # connect() a déjà demandé au canal de se connecter
         self._bus = bus
 
     # -- appels unaires -------------------------------------------------------
@@ -174,6 +185,34 @@ class GrpcInventoryClient(InventoryClient):
         return self._responses(method, stub.CheckStock(iter(requests), **options), conv.stock_level_from_proto)
 
     # -- cycle de vie ---------------------------------------------------------
+
+    def connect(self, timeout: float | None = None) -> bool:
+        """Établit le canal (TCP, préface et SETTINGS HTTP/2) sans ouvrir de flux, donc sans appel.
+
+        Attend que le canal soit prêt, ou que la tentative échoue (TRANSIENT_FAILURE) : un
+        serveur injoignable ne fait pas attendre jusqu'à l'échéance.
+
+        Seule la première demande réveille le canal ; les suivantes lisent son état (au repos :
+        faux, l'appel suivant l'ouvrira). Une demande de connexion répétée pendant que gRPC
+        surveille encore le canal survivrait au désabonnement, et son fil de surveillance
+        échouerait à la fermeture du canal (« Channel closed! »).
+        """
+        wake, self._woken = not self._woken, True
+        settles = _SETTLED_STATES if wake else _SETTLED_STATES | {grpc.ChannelConnectivity.IDLE}
+        settled = threading.Event()
+        reached: list[grpc.ChannelConnectivity] = []
+
+        def watch(state: grpc.ChannelConnectivity) -> None:
+            if state in settles:
+                reached.append(state)
+                settled.set()
+
+        self.channel.subscribe(watch, try_to_connect=wake)
+        try:
+            settled.wait(self._connect_timeout if timeout is None else timeout)
+        finally:
+            self.channel.unsubscribe(watch)
+        return bool(reached) and reached[0] is grpc.ChannelConnectivity.READY
 
     def close(self) -> None:
         super().close()
@@ -305,7 +344,7 @@ def _demo(console: Any, client: GrpcInventoryClient) -> None:
 
     sent = next((event for event in events if event.stage == "client.send"), None)
     if sent is not None and sent.payload is not None:
-        section("Sous le capot — la requête update_stock telle qu'elle part sur le fil")
+        section("Sous le capot — la requête update_stock telle qu’elle part sur le fil")
         console.print(f"[dim]{hexdump(sent.payload)}[/]")
         wire = Table(box=None, padding=(0, 2), header_style="bold cyan")
         wire.add_column("Octets")
@@ -355,7 +394,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(
         prog="python -m rpc_grpc.grpc_client",
-        description="Démonstration des quatre formes d'appel gRPC contre le serveur du contrat v1.",
+        description="Démonstration des quatre formes d’appel gRPC contre le serveur du contrat v1.",
     )
     parser.add_argument("--host", default=HOST, help="adresse du serveur")
     parser.add_argument("--port", type=int, default=default_ports().grpc, help="port du serveur")

@@ -44,16 +44,16 @@ _TRANSPORT_FAILURES: frozenset[str] = frozenset({TIMEOUT, UNAVAILABLE})
 
 _BREAKER_TEXT: dict[str, str] = {
     OPEN: "Disjoncteur ouvert : les appels sont refusés sans toucher au réseau.",
-    HALF_OPEN: "Disjoncteur semi-ouvert : un seul appel d'essai est autorisé.",
+    HALF_OPEN: "Disjoncteur semi-ouvert : un seul appel d’essai est autorisé.",
     CLOSED: "Disjoncteur refermé : le serveur répond de nouveau.",
 }
 _GIVE_UP_TEXT: dict[str, str] = {
-    "max_attempts": "Nombre maximal de tentatives atteint : l'erreur est remontée à l'appelant.",
-    "non_idempotent": "Procédure non idempotente sans clé d'idempotence : la rejouer risquerait un doublon.",
+    "max_attempts": "Nombre maximal de tentatives atteint : l’erreur est remontée à l’appelant.",
+    "non_idempotent": "Procédure non idempotente sans clé d’idempotence : la rejouer risquerait un doublon.",
     "stream_started": "Le flux avait commencé : le rejouer livrerait des éléments en double.",
     "circuit_open": "Disjoncteur ouvert : appel refusé sans toucher au réseau.",
 }
-_DEDUP_TEXT = "Le serveur a reconnu la clé d'idempotence : l'effet n'a pas été appliqué une seconde fois."
+_DEDUP_TEXT = "Le serveur a reconnu la clé d’idempotence : l’effet n’a pas été appliqué une seconde fois."
 
 
 @dataclass
@@ -328,6 +328,9 @@ class ResilientClient(InventoryClient):
         references = list(product_ids)
         return self._stream("check_stock", lambda t: target(references, timeout=t), timeout)
 
+    def connect(self, timeout: float | None = None) -> bool:
+        return self.inner.connect(timeout)
+
     def close(self) -> None:
         self.inner.close()
         super().close()
@@ -409,7 +412,7 @@ class ResilientClient(InventoryClient):
         })
         self._finish(call, "circuit_open")
         raise CircuitOpenError(
-            f"Disjoncteur ouvert : l'appel à « {call.method} » est refusé sans toucher au réseau",
+            f"Disjoncteur ouvert : l’appel à « {call.method} » est refusé sans toucher au réseau",
             protocol=self.protocol,
             method=call.method,
             detail=breaker.snapshot(),

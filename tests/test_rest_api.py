@@ -528,7 +528,7 @@ def test_stop_is_idempotent_and_closes_live_connections(server: RestServerHandle
 
 
 def test_busy_port_is_reported_clearly(server: RestServerHandle) -> None:
-    with pytest.raises(OSError, match=f"Serveur REST : impossible d'écouter sur {HOST}:{server.port}"):
+    with pytest.raises(OSError, match=f"Serveur REST : impossible d’écouter sur {HOST}:{server.port}"):
         create_rest_server(InventoryService(), port=server.port).start()
 
 
@@ -846,7 +846,7 @@ def test_module_serves_on_the_default_port() -> None:
     watchdog.start()
     try:
         banner = process.stdout.readline().decode("utf-8")
-        assert f"à l'écoute sur http://{HOST}:{port}" in banner
+        assert f"à l’écoute sur http://{HOST}:{port}" in banner
         with RestInventoryClient(HOST, port, timeout=3.0, bus=EventBus()) as rest:
             assert rest.calculate_factorial(5)["result"] == "120"
     finally:

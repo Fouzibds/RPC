@@ -39,7 +39,7 @@ from .theme import (
 OUTCOME_BADGES: dict[str, tuple[str, str]] = {
     "compatible": ("COMPATIBLE", SUCCESS),
     "rejected": ("REJET", WARNING),
-    "crash": ("CRASH", ORANGE),
+    "crash": ("PLANTAGE", ORANGE),
     "silent_corruption": ("CORRUPTION SILENCIEUSE", DANGER),
 }
 _KIND_BADGES: dict[str, tuple[str, str]] = {"breaking": ("BREAKING", DANGER), "compatible": ("COMPATIBLE", SUCCESS)}
@@ -117,7 +117,7 @@ def scenario_panel(result: Mapping[str, Any], rank: int) -> Panel:
     comparison = Table(box=box.SIMPLE_HEAD, border_style=BORDER, header_style=f"bold {SUBTLE}", expand=True,
                        pad_edge=False)
     comparison.add_column("")
-    comparison.add_column("Attendu — ce qu'un serveur v1 aurait fait", ratio=1)
+    comparison.add_column("Attendu — ce qu’un serveur v1 aurait fait", ratio=1)
     comparison.add_column("Observé — face au serveur v2", ratio=1)
     comparison.add_row(Text("Statut", style=MUTED), _status_text(expected["status"]), _status_text(observed["status"]))
     comparison.add_row(Text("Effet", style=MUTED), Text(expected["summary"]), Text(observed["summary"], style=color))

@@ -18,7 +18,7 @@ from typing import Any, Callable, Iterator
 import pytest
 
 from common.client_api import InventoryClient
-from common.config import HOST
+from common.config import CONNECT_TIMEOUT_S, HOST
 from common.errors import (
     CircuitOpenError,
     MethodNotFoundError,
@@ -195,6 +195,12 @@ class FakeGrpcClient(FakeClient):
 
     def check_stock(self, product_ids: list[str], *, timeout: float | None = None) -> Iterator[dict[str, Any]]:
         return self._items(self._play("check_stock", product_ids=product_ids, timeout=timeout))
+
+
+def free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind((HOST, 0))
+        return probe.getsockname()[1]
 
 
 def connect(proxy: ChaosProxy, timeout: float = 3.0) -> socket.socket:
@@ -494,6 +500,29 @@ def test_relay_is_transparent(proxy: ChaosProxy, echo: EchoServer) -> None:
     assert bytes(echo.received) == b"".join(payloads)
 
 
+def test_links_count_connections_once_linked_to_the_server(proxy: ChaosProxy) -> None:
+    """La poignée de main TCP aboutit avant que le proxy joigne le serveur : ``wait_links`` attend la jonction."""
+    joined, settled = proxy.links()
+    assert proxy.wait_links(settled + 1, 0.05) == (joined, settled)      # personne ne s'est connecté
+    with connect(proxy) as first, connect(proxy) as second:
+        assert proxy.wait_links(settled + 2, 3.0) == (joined + 2, settled + 2)
+        for sock in (first, second):
+            round_trip(sock, b"ping")
+    proxy.reset_stats()                                         # compteurs monotones : les statistiques n'y touchent pas
+    assert proxy.links() == (joined + 2, settled + 2)
+
+
+def test_links_settle_without_joining_when_the_server_is_unreachable() -> None:
+    """Serveur absent derrière le proxy : l'admission est tranchée sans jonction, et l'attente réveillée aussitôt."""
+    with ChaosProxy("orphelin", 0, free_port()) as proxy:
+        joined, settled = proxy.links()
+        started = time.perf_counter()
+        with connect(proxy):
+            assert proxy.wait_links(settled + 1, 10.0) == (joined, settled + 1)
+        assert time.perf_counter() - started < CONNECT_TIMEOUT_S + 1.0     # pas jusqu'au bout des 10 s
+        assert proxy.stats()["refused"] == 1
+
+
 @pytest.mark.parametrize("latency_ms", [0, 30])
 def test_large_payload_arrives_intact(proxy: ChaosProxy, latency_ms: int) -> None:
     proxy.conditions.update(latency_ms=latency_ms)
@@ -536,7 +565,7 @@ def test_context_manager_starts_and_stops(echo: EchoServer) -> None:
 
 
 def test_listening_on_a_busy_port_fails_clearly(proxy: ChaosProxy, echo: EchoServer) -> None:
-    with pytest.raises(OSError, match="impossible d'écouter"):
+    with pytest.raises(OSError, match="impossible d’écouter"):
         ChaosProxy("doublon", proxy.port, echo.port).start()
 
 

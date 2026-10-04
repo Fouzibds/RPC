@@ -63,23 +63,23 @@ PRESET_INFO: dict[str, dict[str, str]] = {
     },
     "lan": {
         "label": "Réseau local",
-        "description": "Deux machines du même bâtiment : environ 1 ms d'aller-retour, à peine perceptible.",
+        "description": "Deux machines du même bâtiment : environ 1 ms d’aller-retour, à peine perceptible.",
         "icon": "network",
     },
     "wan": {
         "label": "Internet (WAN)",
-        "description": "Un serveur dans une autre région : 40 ms d'aller-retour et une gigue modérée.",
+        "description": "Un serveur dans une autre région : 40 ms d’aller-retour et une gigue modérée.",
         "icon": "globe",
     },
     "mobile_3g": {
         "label": "Mobile 3G",
-        "description": "Lien cellulaire : 200 ms d'aller-retour, des pics de 800 ms sur 5 % des requêtes "
+        "description": "Lien cellulaire : 200 ms d’aller-retour, des pics de 800 ms sur 5 % des requêtes "
                        "et 1 % de coupures.",
         "icon": "smartphone",
     },
     "satellite": {
         "label": "Liaison satellite",
-        "description": "Orbite géostationnaire : 600 ms d'aller-retour, stables mais incompressibles.",
+        "description": "Orbite géostationnaire : 600 ms d’aller-retour, stables mais incompressibles.",
         "icon": "satellite",
     },
     "flaky": {
@@ -90,7 +90,7 @@ PRESET_INFO: dict[str, dict[str, str]] = {
     },
     "blackhole": {
         "label": "Trou noir",
-        "description": "Les octets partent mais rien ne revient : seule une échéance (timeout) libère l'appelant.",
+        "description": "Les octets partent mais rien ne revient : seule une échéance (timeout) libère l’appelant.",
         "icon": "circle-off",
     },
     "outage": {

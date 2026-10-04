@@ -53,8 +53,8 @@ _LINGER_RESET = struct.pack("HH" if os.name == "nt" else "ii", 1, 0)
 _HTTP2_PREFACE = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 
 _RESET_TEXT: dict[str, str] = {
-    "armed": "Coupure armée : la connexion est réinitialisée et la requête n'atteint pas le serveur.",
-    "probability": "Coupure aléatoire : la connexion est réinitialisée à l'arrivée de la requête.",
+    "armed": "Coupure armée : la connexion est réinitialisée et la requête n’atteint pas le serveur.",
+    "probability": "Coupure aléatoire : la connexion est réinitialisée à l’arrivée de la requête.",
     "down": "Serveur en panne : la connexion en cours est coupée.",
     "blackhole_end": "Fin du trou noir : des octets ont été perdus, la connexion est réinitialisée.",
 }
@@ -235,6 +235,7 @@ class _Link:
         self.tainted = False      # des octets ont été avalés : le flux n'est plus cohérent
         self.reply_lost = False   # panne « réponse perdue » en cours sur cette connexion
         self.connect_deadline: float | None = None  # heure limite de la connexion au serveur
+        self.settled = False      # admission tranchée : reliée au serveur, ou abandonnée (voir ChaosProxy.links)
         self._on_closed = on_closed
         self._lock = threading.Lock()
         self._open_directions = 2
@@ -333,6 +334,10 @@ class ChaosProxy:
         self._threads: list[threading.Thread] = []
         self._counters: dict[str, int] = dict.fromkeys(_COUNTERS, 0)
         self._armed: dict[str, int] = dict.fromkeys(ARM_KINDS, 0)
+        # Admissions depuis le démarrage, jamais remises à zéro : reliées au serveur, et tranchées (reliées ou abandonnées).
+        self._joined = 0
+        self._settled = 0
+        self._settled_changed = threading.Condition(self._lock)
 
     # -- cycle de vie ---------------------------------------------------------
 
@@ -364,7 +369,7 @@ class ChaosProxy:
                 listener.close()
                 raise OSError(
                     exc.errno,
-                    f"Proxy « {self.name} » : impossible d'écouter sur "
+                    f"Proxy « {self.name} » : impossible d’écouter sur "
                     f"{self.listen_host}:{self.listen_port} ({exc.strerror or exc})",
                 ) from exc
             listener.settimeout(_SWEEP_INTERVAL_S)
@@ -443,6 +448,23 @@ class ChaosProxy:
         with self._lock:
             self._counters = dict.fromkeys(_COUNTERS, 0)
 
+    def links(self) -> tuple[int, int]:
+        """``(reliées, tranchées)`` : connexions admises depuis le démarrage, puis reliées au serveur,
+        et toutes celles dont l'admission est tranchée (reliées, refusées, serveur injoignable).
+
+        Le client voit sa connexion ouverte dès la poignée de main TCP avec le proxy ; le
+        proxy, lui, ne l'accepte et ne joint le serveur qu'ensuite. Avec ``wait_links``, cela
+        permet d'attendre que le trajet entier soit ouvert avant de mesurer un appel.
+        """
+        with self._lock:
+            return self._joined, self._settled
+
+    def wait_links(self, settled: int, timeout: float) -> tuple[int, int]:
+        """Attend que ``settled`` admissions soient tranchées, au plus ``timeout`` secondes ; renvoie ``links()``."""
+        with self._settled_changed:
+            self._settled_changed.wait_for(lambda: self._settled >= settled, timeout)
+            return self._joined, self._settled
+
     # -- acceptation ----------------------------------------------------------
 
     def _accept_loop(self, listener: socket.socket) -> None:
@@ -486,6 +508,7 @@ class ChaosProxy:
             # Refuser en fermant le port serait plus fidèle, mais Windows met alors ~2 s à
             # signaler l'échec au client : accepter puis couper échoue tout de suite.
             self._refuse(client, "down")
+            self._settle(None, joined=False)
             return
         try:
             client.settimeout(None)
@@ -493,12 +516,14 @@ class ChaosProxy:
             upstream = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except OSError:
             self._refuse(client, "upstream_unreachable")
+            self._settle(None, joined=False)
             return
         link = _Link(client, upstream, self._forget)
         with self._lock:
             self._links.add(link)
         if not self._spawn(lambda: self._serve(link), "up"):
             link.abort()
+            self._settle(link, joined=False)
 
     def _serve(self, link: _Link) -> None:
         """Fil d'une connexion : joint le serveur, lance les autres fils, puis pompe client → serveur."""
@@ -516,7 +541,9 @@ class ChaosProxy:
         )
         if not all(self._spawn(target, role) for target, role in workers):
             link.abort()
+            self._settle(link, joined=False)
             return
+        self._settle(link, joined=True)
         self._pump(link, upward=True)
 
     def _connect_upstream(self, link: _Link) -> None:
@@ -541,6 +568,20 @@ class ChaosProxy:
     def _unreachable(self, link: _Link) -> None:
         link.abort(lambda: self._fault("refused", "network.refuse", 0, reason="upstream_unreachable",
                                        text=_REFUSE_TEXT["upstream_unreachable"]))
+        self._settle(link, joined=False)
+
+    def _settle(self, link: _Link | None, *, joined: bool) -> None:
+        """Tranche l'admission d'une connexion, une seule fois (sous Windows, la ronde et le fil de
+        la connexion peuvent tous deux constater un serveur injoignable) ; réveille ``wait_links``."""
+        with self._settled_changed:
+            if link is not None:
+                if link.settled:
+                    return
+                link.settled = True
+            self._settled += 1
+            if joined:
+                self._joined += 1
+            self._settled_changed.notify_all()
 
     def _spawn(self, target: Callable[[], Any], role: str) -> bool:
         """Lance un fil de connexion ; refuse (faux) si le proxy est en cours d'arrêt."""
@@ -686,7 +727,7 @@ class ChaosProxy:
         link.reply_lost = True
         self._fault("lost_replies", "network.lost_reply", len(data), bytes=len(data), hold_ms=self.hold_ms,
                     text="La requête atteint le serveur, mais sa réponse est perdue : "
-                         "l'appelant ignore si l'effet a eu lieu.")
+                         "l’appelant ignore si l’effet a eu lieu.")
         delivered_at = self._relay(link, data, conditions, upward=True, spike=False)
         # Le compte à rebours part de la remise au serveur : il a le temps d'exécuter la requête.
         link.down.schedule(link.abort, delivered_at + self.hold_ms / 1000)

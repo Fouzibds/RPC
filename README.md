@@ -271,9 +271,19 @@ RPC/
 python -m pytest
 ```
 
-Environ 900 tests en une minute. Ils n'utilisent que des ports éphémères et un bus de
-traces privé : la suite peut tourner pendant qu'un laboratoire est ouvert. Seul
-`tests/test_cli.py` lance le vrai programme, sur les ports décalés de 400.
+Un peu plus de 900 tests, en deux minutes environ. Ils n'utilisent que des ports
+éphémères et un bus de traces privé : la suite peut tourner pendant qu'un laboratoire est
+ouvert. Seul `tests/test_cli.py` lance le vrai programme, sur les ports décalés de 400.
+
+Les 22 tests de l'interface (`tests/test_frontend_smoke.py`) pilotent un vrai navigateur
+sans interface : Microsoft Edge, présent sur tout Windows récent, ou à défaut le Chromium
+de Playwright. Ils demandent un paquet de plus, absent de `requirements.txt` ; sans lui,
+pytest les signale comme ignorés et le reste de la suite s'exécute normalement.
+
+```powershell
+pip install playwright
+python -m playwright install chromium   # seulement si Edge est absent (Linux, macOS)
+```
 
 | Fichier | Ce qu'il vérifie |
 |---|---|
@@ -285,10 +295,11 @@ traces privé : la suite peut tourner pendant qu'un laboratoire est ouvert. Seul
 | `test_integration.py` | Parité des quatre protocoles (mêmes résultats, mêmes erreurs), cohérence des traces |
 | `test_benchmark.py`, `test_failures.py`, `test_contract.py` | Mesures, scénarios de panne, scénarios de contrat |
 | `test_cli.py`, `test_dashboard_api.py` | Ligne de commande ; API HTTP et WebSocket du dashboard |
+| `test_frontend_smoke.py` | Les huit pages dans un navigateur : navigation, thème, palette de commandes, appels, inspection, benchmark, pannes, contrat, bilan ; aucune erreur de console ni défilement horizontal |
 
 ## En cas de difficulté
 
-- **« Le laboratoire n'a pas pu démarrer »** : un port est occupé. Fermez l'autre
+- **« Le laboratoire n’a pas pu démarrer »** : un port est occupé. Fermez l'autre
   instance, ou décalez les ports avec `RPCX_PORT_OFFSET` (voir plus haut).
 - **Un contrat `.proto` a été modifié** : relancez `python -m rpc_grpc.generate`
   (`main.py` le fait de lui-même quand le code généré est plus ancien que le contrat).

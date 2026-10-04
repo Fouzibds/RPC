@@ -108,7 +108,7 @@ def build_params(method: str, arguments: Sequence[str]) -> dict[str, Any]:
             if param is None:
                 expected = ", ".join(by_name) or "aucun"
                 raise ValueError(
-                    f"Trop d'arguments pour {method} : « {argument} » est en trop (paramètres attendus : {expected})"
+                    f"Trop d’arguments pour {method} : « {argument} » est en trop (paramètres attendus : {expected})"
                 )
         if param.name in supplied:
             raise ValueError(f"Le paramètre « {param.name} » de {method} est donné deux fois")
@@ -352,7 +352,7 @@ def render_parallel(console: Console, report: dict[str, Any], protocol: str) -> 
             bar_text(duration, longest, style, width=32),
         )
         for label, duration, errors, style in (
-            ("Synchrone — un appel après l'autre", report["sequential_ms"], report["sequential_errors"], SUBTLE),
+            ("Synchrone — un appel après l’autre", report["sequential_ms"], report["sequential_errors"], SUBTLE),
             ("Asynchrone — tous lancés ensemble", report["parallel_ms"], report["parallel_errors"], color),
         )
     ]
@@ -365,14 +365,14 @@ def render_parallel(console: Console, report: dict[str, Any], protocol: str) -> 
         note(
             console,
             f"Accélération {fr_ratio(speedup)} : les requêtes partent sans attendre les réponses ; "
-            "le temps d'attente du réseau se superpose au lieu de s'additionner.",
+            "le temps d’attente du réseau se superpose au lieu de s’additionner.",
         )
     else:
         note(
             console,
-            f"Accélération {fr_ratio(speedup)} : sans latence réseau, un appel ne fait presque qu'occuper le "
-            "processeur — il n'y a pas d'attente à superposer. Ajoutez de la latence (laboratoire de pannes) "
-            "pour voir l'écart se creuser.",
+            f"Accélération {fr_ratio(speedup)} : sans latence réseau, un appel ne fait presque qu’occuper le "
+            "processeur — il n’y a pas d’attente à superposer. Ajoutez de la latence (laboratoire de pannes) "
+            "pour voir l’écart se creuser.",
             mark="!", color=WARNING,
         )
 

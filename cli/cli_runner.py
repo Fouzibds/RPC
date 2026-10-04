@@ -108,12 +108,12 @@ def run_benchmark(
     try:
         settings = resolve_config(config)
     except ValueError as error:
-        console.print(failure_panel("Configuration du banc d'essai refusée", str(error)))
+        console.print(failure_panel("Configuration du banc d’essai refusée", str(error)))
         return EXIT_USAGE
     sweep = ", ".join(fr_number(latency) for latency in settings["sweep_latencies_ms"])
     _title(
         console, banner,
-        "Banc d'essai — ce qu'un appel distant coûte, en octets et en temps",
+        "Banc d’essai — ce qu’un appel distant coûte, en octets et en temps",
         f"{settings['method']} · {fr_number(settings['iterations'])} appels par protocole · "
         f"balayage réseau à {sweep} ms",
     )
@@ -122,7 +122,7 @@ def run_benchmark(
         with BenchmarkProgress(console) as progress:
             report = run_full_benchmark(runtime, settings, progress)
     except (RuntimeError, ValueError) as error:
-        console.print(failure_panel("Banc d'essai interrompu", str(error)))
+        console.print(failure_panel("Banc d’essai interrompu", str(error)))
         return EXIT_FAILURE
     note(console, f"Mesures terminées en {fr_duration(progress.elapsed_s * 1000)}.")
     render_report(console, report)
@@ -151,8 +151,8 @@ def run_failures(
     chosen = failure_scenarios(scenario)
     _title(
         console, banner,
-        "Laboratoire de pannes — un appel distant n'est pas un appel local",
-        f"Middleware mis à l'épreuve : {PROTOCOL_LABELS[protocol]} · chaque appel traverse le proxy de chaos",
+        "Laboratoire de pannes — un appel distant n’est pas un appel local",
+        f"Middleware mis à l’épreuve : {PROTOCOL_LABELS[protocol]} · chaque appel traverse le proxy de chaos",
     )
     printer = TimelinePrinter(console)
     results: list[dict[str, Any]] = []
@@ -169,7 +169,7 @@ def run_failures(
         console.print()
         console.print(failure_panel(
             "Scénario interrompu", str(error),
-            "Réseau, stocks et proxy ont été remis dans l'état où le scénario les a trouvés.",
+            "Réseau, stocks et proxy ont été remis dans l’état où le scénario les a trouvés.",
         ))
         return EXIT_FAILURE
     campaign_summary(console, results, time.perf_counter() - started)
@@ -209,13 +209,13 @@ def run_contract(
     section(console, "Le diff des contrats", "Les deux fichiers .proto, ligne à ligne.", number=1)
     render_diff(console, overview)
     section(console, "Ce qui a changé", "Protobuf (calculé à partir des deux descripteurs), puis JSON-RPC — "
-            "qui n'a pas d'IDL : rien n'y annonce une rupture.", number=2)
+            "qui n’a pas d’IDL : rien n’y annonce une rupture.", number=2)
     render_changes(console, overview["changes"])
     section(console, "Un client v1 face aux serveurs v2",
-            "Pour chaque appel : ce qu'un serveur v1 aurait fait, ce qui s'est réellement passé, et le verdict.",
+            "Pour chaque appel : ce qu’un serveur v1 aurait fait, ce qui s’est réellement passé, et le verdict.",
             number=3)
     code = _play_contract_scenarios(console, runtime, [item["id"] for item in CONTRACT_SCENARIOS])
-    section(console, "Règles d'or", "Faire évoluer un contrat sans casser les clients déjà déployés.", number=4)
+    section(console, "Règles d’or", "Faire évoluer un contrat sans casser les clients déjà déployés.", number=4)
     render_rules(console, overview["rules"])
     return code
 
@@ -302,7 +302,7 @@ def run_call(
     render_outcome(console, outcome, inspect=inspect)
     if not outcome.ok and protocol not in spec.protocols:
         # L'erreur vient du stub, comme pour tout appel ; on dit seulement où cette procédure existe.
-        hint(console, f"{method} n'est exposée que par : {', '.join(spec.protocols)} "
+        hint(console, f"{method} n’est exposée que par : {', '.join(spec.protocols)} "
                       f"(par exemple --protocol {spec.protocols[-1]}).")
     return EXIT_OK if outcome.ok else EXIT_RPC_ERROR
 
@@ -389,7 +389,7 @@ def run_dashboard(
     except ImportError as error:
         console.print(failure_panel(
             "Dashboard indisponible",
-            f"Le module dashboard.server n'a pas pu être chargé : {error}",
+            f"Le module dashboard.server n’a pas pu être chargé : {error}",
             "Vérifiez que les dépendances sont installées (pip install -r requirements.txt).",
         ))
         return EXIT_FAILURE
@@ -398,7 +398,7 @@ def run_dashboard(
     except KeyboardInterrupt:
         pass    # Ctrl+C est la façon normale de fermer le dashboard
     except (OSError, RuntimeError) as error:
-        console.print(failure_panel("Le dashboard n'a pas pu démarrer", str(error)))
+        console.print(failure_panel("Le dashboard n’a pas pu démarrer", str(error)))
         return EXIT_FAILURE
     finally:
         if restart_lab and not runtime.started:

@@ -45,19 +45,21 @@ MAX_ATTEMPTS = 10
 MAX_BASE_DELAY_MS = 10_000
 
 _RESULT_STREAMS: frozenset[str] = frozenset({"server_stream", "bidi_stream"})   # le résultat est un itérateur
+
+_WARM_UP_TIMEOUT_S = 2.0    # ouverture de connexion avant une inspection : au-delà, l'appel inspecté la paiera
 _STREAM_METHODS = ", ".join(spec.name for spec in METHODS if spec.kind != "unary")
 
 # Comment chaque protocole mène plusieurs appels de front : la réponse n'est pas la même, et c'est instructif.
 _ASYNC_STRATEGIES: dict[str, str] = {
-    "local": f"Aucun réseau : jusqu'à {ASYNC_WORKERS} threads appellent directement la fonction, et le verrou "
-             "global de l'interpréteur Python ne laisse progresser qu'un calcul à la fois.",
-    "custom": "Multiplexage : toutes les requêtes partent d'un trait sur une seule connexion TCP, et chaque "
-              "réponse retrouve son appel grâce à l'identifiant JSON-RPC.",
-    "grpc": f"HTTP/2 : jusqu'à {ASYNC_WORKERS} appels simultanés, chacun sur son propre flux d'une même connexion.",
-    "rest": f"HTTP/1.1 ne multiplexe pas : jusqu'à {ASYNC_WORKERS} connexions ouvertes, une par appel en cours.",
+    "local": f"Aucun réseau : jusqu’à {ASYNC_WORKERS} threads appellent directement la fonction, et le verrou "
+             "global de l’interpréteur Python ne laisse progresser qu’un calcul à la fois.",
+    "custom": "Multiplexage : toutes les requêtes partent d’un trait sur une seule connexion TCP, et chaque "
+              "réponse retrouve son appel grâce à l’identifiant JSON-RPC.",
+    "grpc": f"HTTP/2 : jusqu’à {ASYNC_WORKERS} appels simultanés, chacun sur son propre flux d’une même connexion.",
+    "rest": f"HTTP/1.1 ne multiplexe pas : jusqu’à {ASYNC_WORKERS} connexions ouvertes, une par appel en cours.",
 }
 _ASYNC_RETRIES = (
-    f"Avec une politique de retries, chaque appel logique occupe un thread (jusqu'à {ASYNC_WORKERS} de front) "
+    f"Avec une politique de retries, chaque appel logique occupe un thread (jusqu’à {ASYNC_WORKERS} de front) "
     "le temps de ses tentatives."
 )
 
@@ -105,7 +107,7 @@ def checked_params(method: str, params: dict[str, Any]) -> MethodSpec:
     # Seules les deux listes des flux gRPC sont contrôlées : un flux ne se construit pas sur autre chose.
     updates, product_ids = params.get("updates"), params.get("product_ids")
     if "updates" in params and not (isinstance(updates, list) and all(isinstance(item, dict) for item in updates)):
-        raise malformed("« updates » doit être une liste d'objets {product_id, delta}.")
+        raise malformed("« updates » doit être une liste d’objets {product_id, delta}.")
     if "product_ids" in params and not isinstance(product_ids, list):
         raise malformed("« product_ids » doit être une liste de références.")
     return spec
@@ -164,7 +166,7 @@ class CallRequest:
                 f"({_STREAM_METHODS})."
             )
         if mode != "stream" and spec.kind in _RESULT_STREAMS:
-            raise malformed(f"« {method} » renvoie un flux d'éléments : utilisez le mode « stream ».")
+            raise malformed(f"« {method} » renvoie un flux d’éléments : utilisez le mode « stream ».")
         count = fields.integer("count", 1, 1, MAX_ASYNC_CALLS)
         timeout_ms = fields.number("timeout_ms", None, 1, MAX_TIMEOUT_MS)
         policy = fields.mapping("policy", None)
@@ -198,7 +200,7 @@ class InspectRequest:
         spec = checked_params(method, params)
         if spec.kind in _RESULT_STREAMS:
             raise malformed(
-                f"« {method} » renvoie un flux : l'inspection décompose un appel à réponse unique. Lancez le flux "
+                f"« {method} » renvoie un flux : l’inspection décompose un appel à réponse unique. Lancez le flux "
                 "en mode « stream » puis relisez sa trace (GET /api/traces/{call_id})."
             )
         # Par défaut : les protocoles distants qui exposent la procédure — ce sont eux qui ont un fil à montrer.
@@ -304,7 +306,7 @@ class CallService:
         with self._lock:
             if self._open_streams >= MAX_STREAMS:
                 raise ApiError(
-                    429, BUSY, f"Trop de flux en cours ({MAX_STREAMS}) : attendez la fin de l'un d'eux."
+                    429, BUSY, f"Trop de flux en cours ({MAX_STREAMS}) : attendez la fin de l’un d’eux."
                 )
             self._open_streams += 1
         stream_id = f"stream-{uuid.uuid4().hex[:8]}"
@@ -528,7 +530,7 @@ class CallService:
     # -- inspection (thread de la voie) -----------------------------------------------
 
     def _run_inspection(self, request: InspectRequest, lane: _Lane) -> dict[str, Any]:
-        cold = lane.cold
+        cold = lane.cold and not self._warm_up(lane, request.via_proxy)
         client = lane.client
         outcome = _invoke(client, client, request.method, request.params, None)
         if isinstance(outcome.error, RpcTransportError):
@@ -543,6 +545,39 @@ class CallService:
             "cold": cold and client.protocol != "local",
             **trace_payload(trace),
         }
+
+    def _warm_up(self, lane: _Lane, via_proxy: bool) -> bool:
+        """Ouvre d'avance la connexion d'une voie neuve, sans appeler de procédure ; vrai si elle l'est.
+
+        Sans cela, l'inspection d'une voie neuve paierait l'ouverture de la connexion (pour
+        gRPC, l'établissement du canal HTTP/2) : plusieurs millisecondes qu'un seul protocole
+        subirait, et la comparaison des trois serait faussée. Aucun appel n'est émis : le bus
+        de traces reste actif pour les autres appels, et une panne armée sur le proxy attend
+        l'appel inspecté. À travers le proxy, la connexion n'est prête qu'une fois reliée au
+        serveur. Réseau en trou noir ou en panne : l'inspection montrera l'échec, inutile
+        d'attendre une connexion qui ne viendra pas. Si la connexion ne s'ouvre pas, rien n'est
+        fait de plus : l'appel inspecté montrera l'erreur réelle, et la voie sera renouvelée
+        comme après toute erreur de transport.
+        """
+        client = lane.client    # voie neuve : la connexion que connect() ouvre est nouvelle
+        if not via_proxy or client.protocol not in self._runtime.proxies:     # direct, ou appel local
+            return client.connect(_WARM_UP_TIMEOUT_S)
+        network = self._runtime.conditions.snapshot()
+        if network["blackhole"] or network["down"]:
+            return False
+        proxy = self._runtime.proxies[client.protocol]
+        joined, settled = proxy.links()
+        deadline = time.monotonic() + _WARM_UP_TIMEOUT_S
+        if not client.connect(_WARM_UP_TIMEOUT_S):
+            return False
+        if client.protocol == "grpc":
+            return True     # canal prêt : les SETTINGS du serveur sont revenus, le trajet entier est ouvert
+        # JSON-RPC et REST : la connexion est ouverte côté client dès la poignée de main TCP avec le
+        # proxy, avant qu'il l'accepte et joigne le serveur. On attend que le proxy tranche : reliée,
+        # ou abandonnée (serveur injoignable). Une connexion ouverte au même moment par un autre
+        # client peut être tranchée avant la nôtre : on attend alors un peu moins.
+        now_joined, _ = proxy.wait_links(settled + 1, max(0.0, deadline - time.monotonic()))
+        return now_joined > joined
 
     # -- flux (thread dédié) ------------------------------------------------------------
 
