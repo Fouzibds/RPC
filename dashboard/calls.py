@@ -45,6 +45,11 @@ MAX_ATTEMPTS = 10
 MAX_BASE_DELAY_MS = 10_000
 
 _RESULT_STREAMS: frozenset[str] = frozenset({"server_stream", "bidi_stream"})   # le résultat est un itérateur
+
+# Appel d'échauffement d'une inspection : servi par tous les protocoles, sans effet sur l'inventaire.
+_WARM_UP_METHOD = "calculate_factorial"
+_WARM_UP_PARAMS: dict[str, Any] = {"n": 1}
+_WARM_UP_TIMEOUT_S = 2.0    # sous un réseau dégradé, l'échauffement ne doit pas doubler l'attente
 _STREAM_METHODS = ", ".join(spec.name for spec in METHODS if spec.kind != "unary")
 
 # Comment chaque protocole mène plusieurs appels de front : la réponse n'est pas la même, et c'est instructif.
@@ -528,7 +533,9 @@ class CallService:
     # -- inspection (thread de la voie) -----------------------------------------------
 
     def _run_inspection(self, request: InspectRequest, lane: _Lane) -> dict[str, Any]:
-        cold = lane.cold
+        if lane.cold:
+            self._warm_up(lane)
+        cold = lane.cold            # encore vrai si l'échauffement a perdu sa connexion
         client = lane.client
         outcome = _invoke(client, client, request.method, request.params, None)
         if isinstance(outcome.error, RpcTransportError):
@@ -543,6 +550,22 @@ class CallService:
             "cold": cold and client.protocol != "local",
             **trace_payload(trace),
         }
+
+    def _warm_up(self, lane: _Lane) -> None:
+        """Ouvre la connexion de la voie par un appel non tracé, juste avant l'appel inspecté.
+
+        Sans lui, l'inspection d'une voie neuve paierait l'ouverture de la connexion (pour gRPC,
+        l'établissement du canal HTTP/2) : plusieurs millisecondes qu'un seul protocole subirait,
+        et la comparaison des trois serait faussée. Bus coupé : ni trace, ni compteur, ni
+        message sur le WebSocket.
+        """
+        client = lane.client
+        if client.protocol == "local":
+            return
+        with self._runtime.bus.muted():
+            outcome = _invoke(client, client, _WARM_UP_METHOD, _WARM_UP_PARAMS, _WARM_UP_TIMEOUT_S)
+        if isinstance(outcome.error, RpcTransportError):
+            lane.renew()
 
     # -- flux (thread dédié) ------------------------------------------------------------
 

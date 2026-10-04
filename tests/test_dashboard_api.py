@@ -358,6 +358,26 @@ def test_inspect_returns_the_pipeline_of_three_protocols(client: TestClient) -> 
     assert grpc["summary"]["response_bytes"] < custom["summary"]["response_bytes"]
 
 
+def test_inspect_warms_fresh_connections_without_a_trace(runtime: LabRuntime) -> None:
+    update = {"method": "update_stock", "params": {"product_id": PRODUCT, "delta": -1}}
+    stock = runtime.service.get_product_details(PRODUCT)["stock"]
+    traced = {protocol: totals["calls"] for protocol, totals in runtime.collector.totals.items()}
+    factorials = runtime.service.stats()["calls"].get("calculate_factorial", 0)
+    with TestClient(create_app(runtime)) as fresh:      # nouvelle application : aucune connexion ouverte
+        traces = fresh.post("/api/inspect", json=update).json()["traces"]
+    # Chaque voie neuve s'est échauffée hors trace : l'appel inspecté ne paie pas l'ouverture de sa connexion.
+    assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
+        (protocol, True, False) for protocol in REMOTE_PROTOCOLS
+    ]
+    assert all(trace["summary"]["method"] == "update_stock" for trace in traces)
+    # L'échauffement n'a laissé ni trace ni effet : un débit par protocole, rien de plus.
+    assert {protocol: totals["calls"] for protocol, totals in runtime.collector.totals.items()} == {
+        protocol: traced.get(protocol, 0) + (protocol in REMOTE_PROTOCOLS) for protocol in {*traced, *REMOTE_PROTOCOLS}
+    }
+    assert runtime.service.get_product_details(PRODUCT)["stock"] == stock - len(REMOTE_PROTOCOLS)
+    assert runtime.service.stats()["calls"]["calculate_factorial"] == factorials + len(REMOTE_PROTOCOLS)
+
+
 def test_inspect_local_call_and_validation(client: TestClient) -> None:
     body = {**READ_PRODUCT, "protocols": ["local", "rest"]}
     local, rest = client.post("/api/inspect", json=body).json()["traces"]
