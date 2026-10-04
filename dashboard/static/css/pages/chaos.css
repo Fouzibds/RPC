@@ -1118,6 +1118,21 @@
   min-width: 0;
 }
 
+/* Colonne très étroite : le badge s'abrège plutôt que de passer sous le bouton. */
+.chaos-scen__status .badge {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.chaos-scen__status .badge__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chaos-scen__duration[hidden] {
+  display: none;
+}
+
 .chaos-scen__detail {
   min-width: 0;
   container: chaos-run / inline-size;
