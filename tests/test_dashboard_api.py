@@ -370,7 +370,8 @@ def test_inspect_opens_fresh_connections_without_calling(runtime: LabRuntime) ->
         (protocol, True, False) for protocol in REMOTE_PROTOCOLS
     ]
     # Ouvrir une connexion n'appelle rien : un débit par protocole, aucune autre procédure, aucune autre trace.
-    assert runtime.service.stats()["calls"] == {**calls, "update_stock": calls.get("update_stock", 0) + len(REMOTE_PROTOCOLS)}
+    debits = calls.get("update_stock", 0) + len(REMOTE_PROTOCOLS)
+    assert runtime.service.stats()["calls"] == {**calls, "update_stock": debits}
     assert runtime.service.get_product_details(PRODUCT)["stock"] == stock - len(REMOTE_PROTOCOLS)
     added = {trace.call_id for trace in runtime.collector.recent(1000)} - known
     assert added == {trace["call_id"] for trace in traces}
@@ -384,10 +385,23 @@ def test_inspect_through_the_proxy_leaves_an_armed_fault_to_the_inspected_call(
         assert armed.status_code == 200, armed.text
         body = {**READ_PRODUCT, "protocols": ["grpc"], "via_proxy": True}
         (trace,) = fresh.post("/api/inspect", json=body).json()["traces"]
-    # La panne visait « la prochaine requête » : c'est l'appel inspecté qui la subit, et elle est consommée.
-    assert trace["ok"] is False and trace["error"]["code"] == "UNAVAILABLE"
+    # La panne visait « la prochaine requête » : c'est l'appel inspecté qui la subit, et elle est consommée,
+    # bien que la connexion ait été ouverte avant lui.
+    assert trace["ok"] is False and trace["error"]["code"] == "UNAVAILABLE" and trace["cold"] is False
     assert trace["summary"]["method"] == "get_product_details"
     assert runtime.proxies["grpc"].armed()["reset"] == 0
+
+
+def test_inspect_through_the_proxy_opens_the_whole_path_first(runtime: LabRuntime) -> None:
+    joined = {protocol: runtime.proxies[protocol].joined() for protocol in REMOTE_PROTOCOLS}
+    with TestClient(create_app(runtime)) as fresh:      # voies neuves
+        traces = fresh.post("/api/inspect", json={**READ_PRODUCT, "via_proxy": True}).json()["traces"]
+    # Chaque connexion était reliée au serveur avant l'appel inspecté, qui ne l'a pas payée.
+    assert [(trace["protocol"], trace["ok"], trace["cold"]) for trace in traces] == [
+        (protocol, True, False) for protocol in REMOTE_PROTOCOLS
+    ]
+    for protocol in ("custom", "rest"):      # gRPC peut reprendre la connexion d'un autre canal vers le même proxy
+        assert runtime.proxies[protocol].joined() == joined[protocol] + 1
 
 
 def test_inspect_local_call_and_validation(client: TestClient) -> None:

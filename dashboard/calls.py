@@ -553,16 +553,29 @@ class CallService:
         gRPC, l'établissement du canal HTTP/2) : plusieurs millisecondes qu'un seul protocole
         subirait, et la comparaison des trois serait faussée. Aucun appel n'est émis : le bus
         de traces reste actif pour les autres appels, et une panne armée sur le proxy attend
-        l'appel inspecté. Réseau en trou noir ou en panne : l'inspection montrera l'échec,
-        inutile d'attendre une connexion qui ne viendra pas. Si la connexion ne s'ouvre pas,
-        rien n'est fait de plus : l'appel inspecté montrera l'erreur réelle, et la voie sera
-        renouvelée comme après toute erreur de transport.
+        l'appel inspecté. À travers le proxy, la connexion n'est prête qu'une fois reliée au
+        serveur. Réseau en trou noir ou en panne : l'inspection montrera l'échec, inutile
+        d'attendre une connexion qui ne viendra pas. Si la connexion ne s'ouvre pas, rien n'est
+        fait de plus : l'appel inspecté montrera l'erreur réelle, et la voie sera renouvelée
+        comme après toute erreur de transport.
         """
-        if via_proxy:
-            network = self._runtime.conditions.snapshot()
-            if network["blackhole"] or network["down"]:
-                return False
-        return lane.client.connect(_WARM_UP_TIMEOUT_S)
+        client = lane.client    # voie neuve : la connexion que connect() ouvre est nouvelle
+        if not via_proxy or client.protocol not in self._runtime.proxies:     # direct, ou appel local
+            return client.connect(_WARM_UP_TIMEOUT_S)
+        network = self._runtime.conditions.snapshot()
+        if network["blackhole"] or network["down"]:
+            return False
+        proxy = self._runtime.proxies[client.protocol]
+        joined = proxy.joined()
+        deadline = time.monotonic() + _WARM_UP_TIMEOUT_S
+        if not client.connect(_WARM_UP_TIMEOUT_S):
+            return False
+        if client.protocol == "grpc":
+            return True     # canal prêt : les SETTINGS du serveur sont revenus, le trajet entier est ouvert
+        # JSON-RPC et REST : la connexion est ouverte côté client dès la poignée de main TCP avec le
+        # proxy, avant qu'il l'accepte et joigne le serveur. Une connexion ouverte au même moment par
+        # un autre client peut être comptée à la place de la nôtre : on attend alors un peu moins.
+        return proxy.wait_joined(joined + 1, max(0.0, deadline - time.monotonic()))
 
     # -- flux (thread dédié) ------------------------------------------------------------
 

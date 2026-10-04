@@ -333,6 +333,8 @@ class ChaosProxy:
         self._threads: list[threading.Thread] = []
         self._counters: dict[str, int] = dict.fromkeys(_COUNTERS, 0)
         self._armed: dict[str, int] = dict.fromkeys(ARM_KINDS, 0)
+        self._joined = 0                # connexions reliées au serveur depuis le démarrage (jamais remis à zéro)
+        self._joined_changed = threading.Condition(self._lock)
 
     # -- cycle de vie ---------------------------------------------------------
 
@@ -443,6 +445,21 @@ class ChaosProxy:
         with self._lock:
             self._counters = dict.fromkeys(_COUNTERS, 0)
 
+    def joined(self) -> int:
+        """Connexions que le proxy a reliées au serveur depuis son démarrage.
+
+        Le client voit sa connexion ouverte dès la poignée de main TCP avec le proxy ; le
+        proxy, lui, ne l'accepte et ne joint le serveur qu'ensuite. Avec ``wait_joined``, cela
+        permet d'attendre que le trajet entier soit ouvert avant de mesurer un appel.
+        """
+        with self._lock:
+            return self._joined
+
+    def wait_joined(self, count: int, timeout: float) -> bool:
+        """Attend que ``joined()`` atteigne ``count``, au plus ``timeout`` secondes ; vrai si c'est fait."""
+        with self._joined_changed:
+            return self._joined_changed.wait_for(lambda: self._joined >= count, timeout)
+
     # -- acceptation ----------------------------------------------------------
 
     def _accept_loop(self, listener: socket.socket) -> None:
@@ -517,6 +534,9 @@ class ChaosProxy:
         if not all(self._spawn(target, role) for target, role in workers):
             link.abort()
             return
+        with self._joined_changed:
+            self._joined += 1
+            self._joined_changed.notify_all()
         self._pump(link, upward=True)
 
     def _connect_upstream(self, link: _Link) -> None:

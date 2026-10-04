@@ -494,6 +494,19 @@ def test_relay_is_transparent(proxy: ChaosProxy, echo: EchoServer) -> None:
     assert bytes(echo.received) == b"".join(payloads)
 
 
+def test_joined_counts_connections_once_linked_to_the_server(proxy: ChaosProxy) -> None:
+    """La poignée de main TCP aboutit avant que le proxy joigne le serveur : ``wait_joined`` attend la jonction."""
+    joined = proxy.joined()
+    assert proxy.wait_joined(joined + 1, 0.05) is False        # personne ne s'est connecté
+    with connect(proxy) as first, connect(proxy) as second:
+        assert proxy.wait_joined(joined + 2, 3.0) is True
+        assert proxy.joined() == joined + 2
+        for sock in (first, second):
+            round_trip(sock, b"ping")
+    proxy.reset_stats()                                         # compteur monotone : les statistiques n'y touchent pas
+    assert proxy.joined() == joined + 2
+
+
 @pytest.mark.parametrize("latency_ms", [0, 30])
 def test_large_payload_arrives_intact(proxy: ChaosProxy, latency_ms: int) -> None:
     proxy.conditions.update(latency_ms=latency_ms)
